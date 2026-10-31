@@ -150,7 +150,7 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
   text('RICE PALLETS',[16.8,.025,45.5],5,.4,'#edf4fb',true);
   text('RICE BINS',[6.1,2.1,39.8],1.8,.22);
   for(const pos of [[3.5,2.6,4.6],[3.5,2.6,31.1]])text('EXIT',pos,1,.27,'#397c65');
-  const logo=new THREE.TextureLoader().load('/vestano-logo.png',invalidate);logo.colorSpace=THREE.SRGBColorSpace;
+  const logo=new THREE.TextureLoader().load('./vestano-logo.png',invalidate);logo.colorSpace=THREE.SRGBColorSpace;
   const brand=new THREE.Mesh(new THREE.PlaneGeometry(2.1,1.41),new THREE.MeshBasicMaterial({map:logo,side:THREE.DoubleSide}));brand.position.set(24.8,3.3,49.8);root.add(brand);
   for(const [material,items] of batches){
     const geometry=mergeGeometries(items,false);items.forEach(g=>g.dispose());if(!geometry)throw new Error('Warehouse geometry batching failed.');

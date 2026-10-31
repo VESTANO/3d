@@ -87,7 +87,7 @@ export default function App({ quoteHref, contactHref, withShell = true }: Enquir
   return <div className="vestano-trade-page">
     <a className="skip-link" href="#services">Skip the animated journey</a>
     {withShell && <header className="site-header">
-      <a className="wordmark" href="#" aria-label="Vestano, top of page"><img className="brand-logo" src="/vestano-logo.png" alt="Vestano" width="246" height="165" /><span className="brand-divider" /><span className="brand-category">IMPORT & EXPORT</span></a>
+      <a className="wordmark" href="#" aria-label="Vestano, top of page"><img className="brand-logo" src="./vestano-logo.png" alt="Vestano" width="246" height="165" /><span className="brand-divider" /><span className="brand-category">IMPORT & EXPORT</span></a>
       <nav className={menuOpen ? 'nav open' : 'nav'} aria-label="Main navigation"><a href="#journey" onClick={() => setMenuOpen(false)}>The journey</a><a href="#warehouse" onClick={() => setMenuOpen(false)}>Warehouse</a><a href="#services" onClick={() => setMenuOpen(false)}>Our expertise</a><a className="nav-contact" href="#enquiry" onClick={() => setMenuOpen(false)}>Let’s connect <span>↗</span></a></nav>
       <button className="menu-toggle" aria-label="Toggle navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><span /><span /></button>
     </header>}
@@ -137,7 +137,7 @@ export default function App({ quoteHref, contactHref, withShell = true }: Enquir
       </section>
       <section className="enquiry-section" id="enquiry"><div className="enquiry-grid" aria-hidden="true" /><p className="eyebrow"><span className="tiny-square" /> YOUR NEXT CONNECTION</p><div className="enquiry-heading"><h2>The world is closer<br /><em>than you think.</em></h2><p>Tell us where you want to go.<br />Let’s plan the journey together.</p></div><Enquiry mode={mode} links={{ quoteHref, contactHref }} /><div className="enquiry-footnote"><span>VESTANO | IMPORT & EXPORT</span><span>SOURCED IN CHINA. DELIVERED IN KERALA.</span></div></section>
     </main>
-    {withShell && <footer className="site-footer"><a className="footer-brand" href="#"><img src="/vestano-logo.png" alt="Vestano" width="246" height="165" /><span>Connections that move you forward.</span></a><p>© {new Date().getFullYear()} Vestano</p><a href="#journey">Back to the beginning <span>↑</span></a></footer>}
+    {withShell && <footer className="site-footer"><a className="footer-brand" href="#"><img src="./vestano-logo.png" alt="Vestano" width="246" height="165" /><span>Connections that move you forward.</span></a><p>© {new Date().getFullYear()} Vestano</p><a href="#journey">Back to the beginning <span>↑</span></a></footer>}
     <div className="sr-only" aria-live="polite" aria-atomic="true">{mode === 'import' ? 'Import' : 'Export'} journey. Stage {current + 1} of 6: {journeyStages[current].caption}</div>
   </div>;
 }

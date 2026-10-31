@@ -89,7 +89,7 @@ export function createWorld(scene: THREE.Scene, mobile: boolean, invalidate: () 
     scene.add(batchStatic(backgroundCrane.group));
   }
   const shipment = container('#126bca'); scene.add(shipment);
-  const logo = new THREE.TextureLoader().load('/vestano-logo.png', invalidate); logo.colorSpace = THREE.SRGBColorSpace;
+  const logo = new THREE.TextureLoader().load('./vestano-logo.png', invalidate); logo.colorSpace = THREE.SRGBColorSpace;
   const logoMaterial = new THREE.MeshBasicMaterial({map: logo});
   for (const side of [-1, 1]) {
     const decal = new THREE.Mesh(new THREE.PlaneGeometry(3.3, 2.21), logoMaterial);
