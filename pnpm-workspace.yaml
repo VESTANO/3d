@@ -1,0 +1,6 @@
+overrides:
+  rollup: npm:@rollup/wasm-node@^4.52.0
+  esbuild: npm:esbuild-wasm@^0.25.10
+nodeLinker: hoisted
+packageImportMethod: copy
+storeDir: .pnpm-store

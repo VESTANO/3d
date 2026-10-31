@@ -1,0 +1,68 @@
+/* Vestano's supplied blue-and-gold identity. The original logo is unmodified. */
+.vestano-trade-page{--ink:#102d50;--cream:#f4f8ff;--copper:#ffc16a;background:#f6f8fc}
+.vestano-trade-page .site-header{background:#fff;color:#12375f;border-bottom:1px solid #d9e5f3;box-shadow:0 2px 22px #071c3820}
+.vestano-trade-page .wordmark{gap:14px}
+.vestano-trade-page .brand-logo{width:104px;height:70px;object-fit:contain;display:block}
+.vestano-trade-page .brand-divider{background:#bdd0e6;height:28px;margin:0 7px}
+.vestano-trade-page .brand-category{color:#315e8d}
+.vestano-trade-page .nav a:hover{color:#0966c4}
+.vestano-trade-page .nav-contact{border-color:#c8d9ec;background:#f3f7fd}
+.vestano-trade-page .nav-contact span{color:#0966c4}
+.vestano-trade-page .menu-toggle{color:#126bca}
+.vestano-trade-page .journey-scroll{background:#081f3c}
+.vestano-trade-page .scene-shade{background:linear-gradient(90deg,#061d39f0 0%,#08254cd1 24%,#09294a52 52%,#09294a00 83%),linear-gradient(0deg,#04162df5 0%,#071e3e33 23%,transparent 58%,#0a2b4433 100%)}
+.vestano-trade-page .hero-description{max-width:335px;color:#e1ecf9c9;font-size:12px;line-height:1.85}
+.vestano-trade-page .hero-copy h1 em,.vestano-trade-page .stage-copy h2 em{color:#ffd08b}
+.vestano-trade-page .stage-copy>p:last-of-type{color:#dce9f8cc}
+.vestano-trade-page .shipment-spec{margin-top:17px;border-left:2px solid #ffc16a;padding:0 0 0 12px;display:flex;flex-direction:column;gap:5px}
+.vestano-trade-page .shipment-spec>span{font-size:6px;letter-spacing:1.6px;color:#a7c3e3}
+.vestano-trade-page .shipment-spec strong{font-size:9px;font-weight:450;color:#f0f6ff;letter-spacing:.3px}
+.vestano-trade-page .explore-link{margin-top:22px}
+.vestano-trade-page .scene-location{background:#092546ba;border-left-color:#ffc16a}
+.vestano-trade-page .scene-location small{color:#ffcf8c}
+.vestano-trade-page .scene-location>div>span{color:#f0f6ff}
+.vestano-trade-page .route-overlay{background:#08254bdf;animation:brief-route-map 2.5s ease both;pointer-events:none}
+@keyframes brief-route-map{0%{opacity:0;transform:translateY(5px)}8%,86%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-3px)}}
+.vestano-trade-page .route-heading,.vestano-trade-page .route-arrow{color:#ffc16a}
+.vestano-trade-page .route-endpoints small{color:#b8d0ed}
+.vestano-trade-page .map-land{fill:#b3d2f51c;stroke:#b3d2f536}
+.vestano-trade-page .journey-switch{background:#0a295677;border-color:#aecff33f}
+.vestano-trade-page .journey-switch button{color:#d9e9ffbd}
+.vestano-trade-page .journey-switch button.active{background:#fff;color:#0c64b9}
+.vestano-trade-page .button-light{background:#ffc16a;color:#102f53}
+.vestano-trade-page .button-light:hover{background:#ffd18e}
+.vestano-trade-page .stage-copy .eyebrow{color:#e2c398}
+.vestano-trade-page .journey-topline{color:#d9e7f4b5}
+.vestano-trade-page .experience-tools button{color:#d6e4f6ba}
+.vestano-trade-page .experience-tools>span{color:#afc8e6a3}
+.vestano-trade-page .stage-nav button{color:#9bb8d6}
+.vestano-trade-page .stage-nav button.active{color:#fff}
+.vestano-trade-page .stage-track>span{background:#ffc16a}
+.vestano-trade-page .journey-percent{color:#e1edff}
+.vestano-trade-page .footer-brand>img{width:110px;height:74px;object-fit:contain;background:#fff}
+.vestano-trade-page .footer-brand>span{margin-top:10px}
+.vestano-trade-page .services-section,.vestano-trade-page .enquiry-dialog{background:#f6f8fc}
+.vestano-trade-page .enquiry-grid{background:linear-gradient(90deg,#0c315b,transparent),repeating-linear-gradient(0deg,transparent 0,transparent 79px,#ffc16a13 80px),repeating-linear-gradient(90deg,transparent 0,transparent 79px,#ffc16a13 80px)}
+.vestano-trade-page .enquiry-heading h2 em{color:#ffd08b}
+.vestano-trade-page .enquiry-footnote{color:#a8c5e9}
+.vestano-trade-page .static-background{background:radial-gradient(ellipse at 85% 50%,#3972ae,#09284e 70%)}
+@media(max-width:768px){
+ .vestano-trade-page .brand-logo{width:90px;height:60px}
+ .vestano-trade-page .wordmark{gap:7px}
+ .vestano-trade-page .brand-category{font-size:7px}
+ .vestano-trade-page .nav.open{background:#fff;box-shadow:0 12px 25px #071d3826;border-color:#bdd3ee;color:#183d67}
+ .vestano-trade-page .scene-shade{background:linear-gradient(90deg,#061c37ce,transparent 100%),linear-gradient(0deg,#041a35 0%,#07284eb8 14%,transparent 43%,#0a274666 73%,#061c378c 100%)}
+ .vestano-trade-page .hero-description{font-size:10px;max-width:285px}
+ .vestano-trade-page .hero-copy h1{font-size:clamp(36px,8.2vw,59px)}
+ .vestano-trade-page .shipment-spec{margin-top:13px;padding-left:10px;gap:4px}
+ .vestano-trade-page .shipment-spec strong{font-size:8px}
+ .vestano-trade-page .shipment-spec>span{font-size:5.5px}
+ .vestano-trade-page .explore-link{margin-top:16px}
+}
+@media(max-height:780px) and (min-width:769px){
+ .vestano-trade-page .hero-copy{top:225px}
+ .vestano-trade-page .hero-copy .eyebrow{margin-bottom:14px}
+ .vestano-trade-page .hero-description{margin-top:16px;font-size:11px;max-width:340px}
+ .vestano-trade-page .shipment-spec{margin-top:12px}
+ .vestano-trade-page .explore-link{margin-top:15px}
+}
