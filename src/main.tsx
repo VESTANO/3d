@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './styles.css';
 import './brand.css';
+import './mobile.css';
 import './standalone.css';
 const WarehousePage=lazy(()=>import('./warehouse/WarehousePage'));
 function PageRouter(){

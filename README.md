@@ -1,5 +1,17 @@
 # Vestano — Import & Export
 
+## Mobile and tablet support
+
+The import/export page uses a viewport-sized grid on phones, with readable stage text, larger navigation and journey controls, safe-area padding, a single-column enquiry form and a separate layout for short landscape screens. Services stack on narrow phones. The motion-free version grows with its content. `src/mobile.css` follows `brand.css` in the stylesheet order.
+
+The warehouse places the viewer above its details on screens up to 900px wide. A viewpoint selector stays beside the viewer controls, with larger movement buttons and touch-specific instructions. Hold the arrows with one thumb and drag the scene with the other to walk and look around. Overview supports one-finger orbit, pinch zoom and two-finger pan. Expanded view also works when the browser cannot fullscreen an element. The overview camera fits the original floor/roof bounds to the current aspect ratio; user-adjusted views and walking positions survive orientation changes. Phone and touch-device rendering use capped pixel density and smaller shadow maps.
+
+The source drawing, fixture positions, five counters, rice pallets, supermarket stock and blue floor are unchanged. Automated verification covers the camera frustum at phone, tablet and landscape proportions as well as the original CAD and stock locks. This update has not received a new browser or physical-phone visual pass because earlier browser access was declined.
+
+## GitHub Pages
+
+The production build is published from the root of the `gh-pages` branch. Repository settings must enable Pages with that branch as its source. The website uses relative asset paths so it can load beneath `/3d/` and on a local preview. After source changes, rebuild with `pnpm build` and update the published branch with the contents of `dist/`, including the original drawing and an empty `.nojekyll` file. Source changes alone do not replace the published build.
+
 ## Warehouse · Paravoor DWG walkthrough
 
 Open **`http://127.0.0.1:5173/#warehouse`**, or choose **Warehouse** in the navbar. This is a separate lazy-loaded page; the import/export journey remains available through its navigation.
@@ -72,15 +84,16 @@ Build tools use `esbuild-wasm` and `@rollup/wasm-node` through pnpm overrides be
 
 ## Merge into the existing website
 
-1. Copy `src/components/`, `src/journey/`, `src/scene/`, `src/App.tsx`, `src/styles.css`, `src/brand.css`, `public/vestano-logo.png`, and `public/fonts/` into the target project. Preserve the original website's header, footer and routing.
+1. Copy `src/components/`, `src/journey/`, `src/scene/`, `src/App.tsx`, `src/styles.css`, `src/brand.css`, `src/mobile.css`, `public/vestano-logo.png`, and `public/fonts/` into the target project. Preserve the original website's header, footer and routing.
 2. Add the runtime dependencies: `react`, `react-dom`, `three`, and `gsap`. For a TypeScript project, include `@types/three` if it is not already present. Reuse existing compatible installations.
-3. Import `src/styles.css`, then `src/brand.css` with the page. All feature selectors are scoped under `.vestano-trade-page`; `src/standalone.css` contains the preview's document reset and should **not** be copied into the existing site's global styles.
+3. Import `src/styles.css`, then `src/brand.css` and `src/mobile.css` with the page. All feature selectors are scoped under `.vestano-trade-page`; `src/standalone.css` contains the preview's document reset and should **not** be copied into the existing site's global styles.
 4. Mount the component in the real Import & Export route and supply the real contact paths:
 
 ```tsx
 import VestanoImportExport from './App';
 import './styles.css';
 import './brand.css';
+import './mobile.css';
 
 <VestanoImportExport
   withShell={false}

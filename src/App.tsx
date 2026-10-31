@@ -40,6 +40,7 @@ export default function App({ quoteHref, contactHref, withShell = true }: Enquir
   const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [stepsView, setStepsView] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const progress = useRef(0);
   const scrollSection = useRef<HTMLElement>(null);
   const trigger = useRef<ScrollTrigger | null>(null);
@@ -47,6 +48,25 @@ export default function App({ quoteHref, contactHref, withShell = true }: Enquir
   const journeyStages = stages(mode);
   const onReady = useCallback(() => setReady(true), []);
   const onError = useCallback(() => setFailed(true), []);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setMenuOpen(false); menuButton.current?.focus(); }
+    };
+    const outside = (event: PointerEvent) => {
+      if (event.target instanceof Element && !event.target.closest('.site-header')) setMenuOpen(false);
+    };
+    const desktop = window.matchMedia('(min-width: 769px)');
+    const resize = () => { if (desktop.matches) setMenuOpen(false); };
+    document.addEventListener('keydown', close);
+    document.addEventListener('pointerdown', outside);
+    desktop.addEventListener('change', resize);
+    return () => {
+      document.removeEventListener('keydown', close);
+      document.removeEventListener('pointerdown', outside);
+      desktop.removeEventListener('change', resize);
+    };
+  }, [menuOpen]);
   useEffect(() => {
     if (fallback || !ready || current < 2 || current > 4) { setRouteVisible(false); return; }
     setRouteVisible(true);
@@ -88,8 +108,8 @@ export default function App({ quoteHref, contactHref, withShell = true }: Enquir
     <a className="skip-link" href="#services">Skip the animated journey</a>
     {withShell && <header className="site-header">
       <a className="wordmark" href="#" aria-label="Vestano, top of page"><img className="brand-logo" src="./vestano-logo.png" alt="Vestano" width="246" height="165" /><span className="brand-divider" /><span className="brand-category">IMPORT & EXPORT</span></a>
-      <nav className={menuOpen ? 'nav open' : 'nav'} aria-label="Main navigation"><a href="#journey" onClick={() => setMenuOpen(false)}>The journey</a><a href="#warehouse" onClick={() => setMenuOpen(false)}>Warehouse</a><a href="#services" onClick={() => setMenuOpen(false)}>Our expertise</a><a className="nav-contact" href="#enquiry" onClick={() => setMenuOpen(false)}>Let’s connect <span>↗</span></a></nav>
-      <button className="menu-toggle" aria-label="Toggle navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><span /><span /></button>
+      <nav id="main-navigation" className={menuOpen ? 'nav open' : 'nav'} aria-label="Main navigation"><a href="#journey" onClick={() => setMenuOpen(false)}>The journey</a><a href="#warehouse" onClick={() => setMenuOpen(false)}>Warehouse</a><a href="#services" onClick={() => setMenuOpen(false)}>Our expertise</a><a className="nav-contact" href="#enquiry" onClick={() => setMenuOpen(false)}>Let’s connect <span>↗</span></a></nav>
+      <button ref={menuButton} className="menu-toggle" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><span /><span /></button>
     </header>}
 
     <main>

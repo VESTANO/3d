@@ -19,7 +19,8 @@ export default function LogisticsScene({ progress, mode, onReady, onError }: {
     const contextLost = (event: Event) => { event.preventDefault(); onError(); };
     const visibility = () => { visible = !document.hidden; };
     try {
-      const mobile = window.innerWidth < 768;
+      const coarse = window.matchMedia('(pointer: coarse)').matches;
+      const mobile = window.innerWidth < 768 || coarse;
       renderer = new THREE.WebGLRenderer({ antialias: !mobile, alpha: false, powerPreference: 'high-performance' });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.25 : 1.7));
       renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -38,7 +39,7 @@ export default function LogisticsScene({ progress, mode, onReady, onError }: {
         if (host.clientWidth >= 768) camera.setViewOffset(host.clientWidth, host.clientHeight, -host.clientWidth * .13, 0, host.clientWidth, host.clientHeight);
         else camera.setViewOffset(host.clientWidth, host.clientHeight, 0, -host.clientHeight * .1, host.clientWidth, host.clientHeight);
         camera.updateProjectionMatrix();
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, host.clientWidth < 768 ? 1.25 : 1.7));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, host.clientWidth < 768 || coarse ? 1.25 : 1.7));
         renderer.setSize(host.clientWidth, host.clientHeight); lastP = -1;
       };
       observer = new ResizeObserver(resize); observer.observe(host); resize();
@@ -51,7 +52,7 @@ export default function LogisticsScene({ progress, mode, onReady, onError }: {
         if (Math.abs(easedProgress - progress.current) < .000005) easedProgress = progress.current;
         const p = easedProgress;
         if (visible && (Math.abs(p - lastP) > .000001 || modeRef.current !== lastMode)) {
-          const state = world.update(p, camera, modeRef.current, host.clientWidth < 768);
+          const state = world.update(p, camera, modeRef.current, host.clientWidth < 768 || coarse);
           renderer!.render(scene!, camera); lastP = p; lastMode = modeRef.current;
           host.dataset.progress = p.toFixed(4); host.dataset.carrier = state.attachedTo;
           host.dataset.container = state.container.map(n => n.toFixed(2)).join(',');
