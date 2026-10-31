@@ -9,6 +9,8 @@ export default function WarehousePage(){
   const [roof,setRoof]=useState(false),[zone,setZone]=useState('receiving'),[reset,setReset]=useState(0);
   const [visit,setVisit]=useState(0);
   const [expanded,setExpanded]=useState(false);
+  const [touchDevice,setTouchDevice]=useState(()=>window.matchMedia('(pointer: coarse)').matches);
+  const [touchActive,setTouchActive]=useState(false);
   const [ready,setReady]=useState(false),[error,setError]=useState(''),[loadError,setLoadError]=useState('');
   const [position,setPosition]=useState<Point2>([25.6,49]),[showDetails,setShowDetails]=useState(false);
   const input=useRef<WarehouseInput>({keys:new Set(),capture:()=>{}}),viewer=useRef<HTMLDivElement>(null);
@@ -19,6 +21,11 @@ export default function WarehousePage(){
     const abort=new AbortController();document.title='Warehouse · Paravoor — Vestano';
     fetch('./warehouse/layout.json',{signal:abort.signal}).then(r=>{if(!r.ok)throw new Error('Could not load the drawing layout.');return r.json();}).then(setData).catch(e=>{if(e.name!=='AbortError')setLoadError(e.message);});
     return ()=>abort.abort();
+  },[]);
+  useEffect(()=>{
+    const media=window.matchMedia('(pointer: coarse)');
+    const update=()=>setTouchDevice(media.matches);media.addEventListener('change',update);
+    return ()=>media.removeEventListener('change',update);
   },[]);
   useEffect(()=>{
     const clear=()=>{heldPointers.current.clear();input.current.keys.clear();};
@@ -35,12 +42,13 @@ export default function WarehousePage(){
     document.addEventListener('keydown',escape);document.addEventListener('fullscreenchange',fullscreen);
     return ()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',escape);document.removeEventListener('fullscreenchange',fullscreen);};
   },[expanded]);
-  function changeMode(next:ViewMode){setMode(next);setRoof(next==='walk');input.current.keys.clear();}
+  function changeMode(next:ViewMode){setMode(next);setRoof(next==='walk');if(next==='walk')setTouchActive(true);input.current.keys.clear();}
   function focusZone(id:string){setZone(id);setVisit(n=>n+1);if(mode==='plan')changeMode('overview');}
   function toggleFullscreen(){
     if(expanded||document.fullscreenElement){setExpanded(false);void document.exitFullscreen?.().catch(()=>{});return;}
-    setExpanded(true);const request=viewer.current?.requestFullscreen?.();void request?.catch(()=>{});
+    setExpanded(true);setTouchActive(true);const request=viewer.current?.requestFullscreen?.();void request?.catch(()=>{});
   }
+  function toggleTouch(){input.current.keys.clear();heldPointers.current.clear();setTouchActive(active=>!active);}
   function releasePointer(id:number){
     const key=heldPointers.current.get(id);heldPointers.current.delete(id);
     if(key&&![...heldPointers.current.values()].includes(key))input.current.keys.delete(key);
@@ -75,15 +83,15 @@ export default function WarehousePage(){
       <section className={`wh-viewer${expanded?' is-expanded':''}`} ref={viewer} aria-label="Interactive warehouse viewer">
         <div className="wh-toolbar"><div className="wh-view-modes" role="group" aria-label="Warehouse view"><button className={mode==='overview'?'active':''} aria-pressed={mode==='overview'} disabled={!!error} onClick={()=>changeMode('overview')}>3D overview</button><button className={mode==='walk'?'active':''} aria-pressed={mode==='walk'} disabled={!!error} onClick={()=>changeMode('walk')}>Walk inside <span>↗</span></button><button className={mode==='plan'?'active':''} aria-pressed={mode==='plan'} onClick={()=>changeMode('plan')}>Floor plan</button></div><div className="wh-tool-actions"><label className="wh-zone-select"><span>Go to</span><select aria-label="Warehouse viewpoint" value={zone} disabled={!data} onChange={e=>focusZone(e.target.value)}>{data?.zones.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></label><button onClick={()=>setRoof(!roof)} aria-pressed={roof} disabled={mode==='plan'}>Roof <span>{roof?'On':'Off'}</span></button><button onClick={()=>setReset(n=>n+1)} disabled={mode==='plan'} aria-label="Reset warehouse camera">↻</button><button ref={expandButton} onClick={toggleFullscreen} aria-pressed={expanded} aria-label={expanded?'Exit expanded warehouse view':'Expand warehouse view'}>{expanded?'×':'⛶'}</button></div></div>
         <div className={`wh-canvas-wrap ${mode==='plan'?'plan-active':''}`}>
-          {data&&!error&&<Suspense fallback={null}><Stage data={data} mode={mode} roof={roof} zone={zone} visit={visit} reset={reset} input={input} onReady={onReady} onError={onError} onPosition={onPosition}/></Suspense>}
+          {data&&!error&&<Suspense fallback={null}><Stage data={data} mode={mode} interactive={!touchDevice||touchActive} roof={roof} zone={zone} visit={visit} reset={reset} input={input} onReady={onReady} onError={onError} onPosition={onPosition}/></Suspense>}
           {mode==='plan'&&<div className="wh-original-plan"><a className="wh-plan-link" href="./warehouse/floor-plan.svg" target="_blank" rel="noreferrer">Open full-size plan extract ↗</a><img src="./warehouse/floor-plan.svg" alt="Paravoor DWG floor-plan extract showing rack aisles, pallet storage, receiving, billing, delivery, stairs and facilities" /></div>}
           {(!ready||!data)&&mode!=='plan'&&!error&&!loadError&&<div className="wh-loading" role="status"><span /><strong>Building your space.</strong><p>Preparing the drawing, shelving and materials…</p></div>}
           {(loadError||error)&&<div className="wh-error" role="status">{loadError||error} <a href="./warehouse/floor-plan.svg" target="_blank" rel="noreferrer">Open the drawing ↗</a></div>}
-          {mode==='walk'&&ready&&<><span className="wh-crosshair" aria-hidden="true"/><div className="wh-walk-hint"><span className="wh-live-dot"/>EYE LEVEL · 1.65 M<button onClick={()=>input.current.capture()}>Mouse look ↗</button></div><div className="wh-move-pad" role="group" aria-label="Walk controls"><button {...hold('KeyW')} aria-label="Walk forward">↑</button><div><button {...hold('KeyA')} aria-label="Strafe left">←</button><button {...hold('KeyS')} aria-label="Walk backward">↓</button><button {...hold('KeyD')} aria-label="Strafe right">→</button></div></div></>}
+          {mode==='walk'&&ready&&(!touchDevice||touchActive)&&<><span className="wh-crosshair" aria-hidden="true"/><div className="wh-walk-hint"><span className="wh-live-dot"/>EYE LEVEL · 1.65 M<button onClick={()=>input.current.capture()}>Mouse look ↗</button></div><div className="wh-move-pad" role="group" aria-label="Walk controls"><button {...hold('KeyW')} aria-label="Walk forward">↑</button><div><button {...hold('KeyA')} aria-label="Strafe left">←</button><button {...hold('KeyS')} aria-label="Walk backward">↓</button><button {...hold('KeyD')} aria-label="Strafe right">→</button></div></div></>}
           {data&&mode!=='plan'&&<div className="wh-minimap"><div><span>YOU ARE HERE</span><small>{mode==='walk'?'LIVE POSITION':'PLAN REFERENCE'}</small></div><div className="wh-map-sheet"><img src="./warehouse/floor-plan.svg" alt="Warehouse layout minimap"/>{mode==='walk'&&<span className="wh-position-dot" style={{left:`${position[0]/34*100}%`,top:`${position[1]/55*100}%`}}/>}</div><span className="wh-map-north">N ↑</span></div>}
           <div className="wh-scene-label"><span className="wh-live-dot"/>{mode==='walk'?'INSIDE THE WAREHOUSE':mode==='plan'?'THE SOURCE DRAWING':'YOUR DRAWING. A NEW PERSPECTIVE.'}</div>
         </div>
-        <div className="wh-viewer-foot"><p><span className="wh-desktop-help">{mode==='walk'?<><kbd>W A S D</kbd> / arrows to walk <span>·</span> Drag to look <span>·</span> Shift to move faster <span>·</span> Esc releases mouse</>:mode==='plan'?'The source plan, with the actual footprint geometry and drawing labels.':'Drag to orbit · Scroll to zoom · Right-drag to pan'}</span><span className="wh-touch-help">{mode==='walk'?'Hold the arrows to walk · Drag the scene to look around':mode==='plan'?'Your original layout · Open the full-size drawing for more detail':'One finger to orbit · Pinch to zoom · Two fingers to pan'}</span></p><span>3D STUDY · HEIGHTS & FINISHES TO CONFIRM</span></div>
+        <div className="wh-viewer-foot"><p id="warehouse-gesture-help"><span className="wh-desktop-help">{mode==='walk'?<><kbd>W A S D</kbd> / arrows to walk <span>·</span> Drag to look <span>·</span> Shift to move faster <span>·</span> Esc releases mouse</>:mode==='plan'?'The source plan, with the actual footprint geometry and drawing labels.':'Drag to orbit · Scroll to zoom · Right-drag to pan'}</span><span className="wh-touch-help">{mode==='plan'?'Your original layout · Open the full-size drawing for more detail':!touchActive?'Swipe to scroll the page. Tap Explore 3D to interact with the warehouse.':mode==='walk'?'Hold the arrows to walk · Drag the scene to look around':'One finger to orbit · Pinch to zoom · Two fingers to pan'}</span></p>{touchDevice&&mode!=='plan'&&ready&&!error&&!expanded&&<button className="wh-touch-toggle" onClick={toggleTouch} aria-pressed={touchActive} aria-describedby="warehouse-gesture-help">{touchActive?'Scroll page ↓':'Explore 3D ↗'}</button>}<span>3D STUDY · HEIGHTS & FINISHES TO CONFIRM</span></div>
       </section>
     </main>
   </div>;

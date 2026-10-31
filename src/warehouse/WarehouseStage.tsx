@@ -7,10 +7,10 @@ import {overviewPose} from './viewFraming';
 import type {Point2,ViewMode,WarehouseLayout} from './layout';
 
 export interface WarehouseInput {keys:Set<string>;capture:()=>void}
-interface Props {data:WarehouseLayout;mode:ViewMode;roof:boolean;zone:string;visit:number;reset:number;input:React.RefObject<WarehouseInput>;onReady:()=>void;onError:(message:string)=>void;onPosition:(position:Point2)=>void}
+interface Props {data:WarehouseLayout;mode:ViewMode;interactive:boolean;roof:boolean;zone:string;visit:number;reset:number;input:React.RefObject<WarehouseInput>;onReady:()=>void;onError:(message:string)=>void;onPosition:(position:Point2)=>void}
 export default function WarehouseStage(props:Props){
   const host=useRef<HTMLDivElement>(null),live=useRef(props);live.current=props;
-  const controller=useRef<{reset:()=>void;goToZone:()=>void;invalidate:()=>void}|null>(null);
+  const controller=useRef<{reset:()=>void;goToZone:()=>void;invalidate:()=>void;setInteraction:()=>void}|null>(null);
   useEffect(()=>{
     const mount=host.current!;let renderer:THREE.WebGLRenderer|undefined,scene:THREE.Scene|undefined,controls:OrbitControls|undefined;
     let frame=0,observer:ResizeObserver|undefined,stopped=false,dirty=true,dragging=false,lookPointer:number|null=null,overviewFramed=true,previous:Point2=[0,0],yaw=0,pitch=0,lastMode:ViewMode=live.current.mode;
@@ -28,7 +28,7 @@ export default function WarehouseStage(props:Props){
         controls.enabled=false;transition=null;
       }else{
         if(renderer&&document.pointerLockElement===renderer.domElement)document.exitPointerLock?.();
-        controls.enabled=p.mode==='overview';
+        controls.enabled=p.mode==='overview'&&p.interactive;
         overviewFramed=true;
         const {eye,target}=overviewPose(p.data.bounds,camera.aspect,camera.fov);
         transition={eye,target,from:camera.position.clone(),fromTarget:controls.target.clone(),t:reduced?1:0};
@@ -36,8 +36,8 @@ export default function WarehouseStage(props:Props){
       keys.clear();dragging=false;lookPointer=null;dirty=true;lastMode=p.mode;mount.dataset.mode=p.mode;
     };
     const setLook=(dx:number,dy:number)=>{yaw-=dx*.0026;pitch=THREE.MathUtils.clamp(pitch-dy*.0026,-1.15,1.15);camera.rotation.set(pitch,yaw,0,'YXZ');dirty=true;};
-    const down=(e:PointerEvent)=>{if(live.current.mode!=='walk'||lookPointer!==null||e.button!==0)return;e.preventDefault();mount.focus({preventScroll:true});dragging=true;lookPointer=e.pointerId;previous=[e.clientX,e.clientY];mount.setPointerCapture(e.pointerId);};
-    const move=(e:MouseEvent)=>{if(live.current.mode!=='walk')return;
+    const down=(e:PointerEvent)=>{if(!live.current.interactive||live.current.mode!=='walk'||lookPointer!==null||e.button!==0)return;e.preventDefault();mount.focus({preventScroll:true});dragging=true;lookPointer=e.pointerId;previous=[e.clientX,e.clientY];mount.setPointerCapture(e.pointerId);};
+    const move=(e:MouseEvent)=>{if(!live.current.interactive||live.current.mode!=='walk')return;
       if(document.pointerLockElement===renderer?.domElement)setLook(e.movementX,e.movementY);
       else if(dragging){setLook(e.clientX-previous[0],e.clientY-previous[1]);previous=[e.clientX,e.clientY];}
     };
@@ -46,11 +46,22 @@ export default function WarehouseStage(props:Props){
     const up=(e:PointerEvent)=>{if(e.pointerId===lookPointer){dragging=false;lookPointer=null;}};
     const keydown=(e:KeyboardEvent)=>{
       if(e.ctrlKey||e.metaKey||e.altKey)return;
-      if(live.current.mode!=='walk'||(e.target instanceof HTMLElement&&['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)))return;
+      if(!live.current.interactive||live.current.mode!=='walk'||(e.target instanceof HTMLElement&&['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)))return;
       if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code)){e.preventDefault();keys.add(e.code);}
     };
     const keyup=(e:KeyboardEvent)=>keys.delete(e.code);
     const clear=()=>{keys.clear();dragging=false;lookPointer=null;};
+    const setInteraction=()=>{
+      if(!renderer||!controls)return;
+      const {interactive,mode}=live.current;
+      controls.enabled=interactive&&mode==='overview';
+      renderer.domElement.style.touchAction=interactive?'none':'pan-y pinch-zoom';
+      if(!interactive){
+        if(lookPointer!==null&&mount.hasPointerCapture(lookPointer))mount.releasePointerCapture(lookPointer);
+        clear();if(document.pointerLockElement===renderer.domElement)document.exitPointerLock?.();
+      }
+      dirty=true;
+    };
     const visibility=()=>{clear();dirty=true;};
     const lost=(e:Event)=>{e.preventDefault();live.current.onError('3D graphics became unavailable. Use the drawing view or reload to try again.');};
     try{
@@ -66,7 +77,7 @@ export default function WarehouseStage(props:Props){
       const initial=overviewPose(props.data.bounds,camera.aspect,camera.fov);controls.target.copy(initial.target);camera.position.copy(initial.eye);controls.update();controls.addEventListener('change',()=>{dirty=true;});
       controls.addEventListener('start',()=>{overviewFramed=false;transition=null;});
       props.input.current.capture=()=>{if(live.current.mode==='walk'){const request=renderer?.domElement.requestPointerLock?.();request?.catch(()=>{});}};
-      controller.current={reset:changeView,invalidate:()=>{dirty=true;},goToZone:()=>{
+      controller.current={reset:changeView,setInteraction,invalidate:()=>{dirty=true;},goToZone:()=>{
         if(live.current.mode==='walk'){changeView();return;}
         overviewFramed=false;
         const zone=live.current.data.zones.find(z=>z.id===live.current.zone)!;
@@ -84,7 +95,7 @@ export default function WarehouseStage(props:Props){
         }
         dirty=true;
       };
-      observer=new ResizeObserver(resize);observer.observe(mount);resize();changeView();
+      observer=new ResizeObserver(resize);observer.observe(mount);resize();changeView();setInteraction();
       mount.addEventListener('pointerdown',down);mount.addEventListener('pointermove',pointerMove);mount.addEventListener('pointerup',up);mount.addEventListener('pointercancel',up);mount.addEventListener('lostpointercapture',up);
       document.addEventListener('mousemove',lockedMove);window.addEventListener('keydown',keydown);window.addEventListener('keyup',keyup);window.addEventListener('blur',clear);document.addEventListener('visibilitychange',visibility);renderer.domElement.addEventListener('webglcontextlost',lost);
       let last=performance.now(),lastPositionTime=0;
@@ -98,7 +109,7 @@ export default function WarehouseStage(props:Props){
           camera.position.lerpVectors(transition.from,transition.eye,t);controls!.target.lerpVectors(transition.fromTarget,transition.target,t);controls!.update();dirty=true;
           if(transition.t===1)transition=null;
         }
-        if(p.mode==='walk'){
+        if(p.mode==='walk'&&p.interactive){
           const forward=Number(keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'));
           const side=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));
           if(forward||side){
@@ -125,5 +136,6 @@ export default function WarehouseStage(props:Props){
   useEffect(()=>{controller.current?.reset();},[props.mode,props.reset]);
   useEffect(()=>{if(props.visit>0)controller.current?.goToZone();},[props.zone,props.visit]);
   useEffect(()=>{controller.current?.invalidate();},[props.roof]);
-  return <div ref={host} className="warehouse-stage" tabIndex={0} data-testid="warehouse-scene" />;
+  useEffect(()=>{controller.current?.setInteraction();},[props.interactive]);
+  return <div ref={host} className="warehouse-stage" tabIndex={props.interactive?0:-1} style={{touchAction:props.interactive?'none':'pan-y pinch-zoom'}} data-testid="warehouse-scene" />;
 }

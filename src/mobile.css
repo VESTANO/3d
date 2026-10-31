@@ -1,4 +1,6 @@
 /* Mobile layout uses the available viewport instead of a fixed minimum height. */
+.vestano-trade-page .mobile-stage-controls { display: none; }
+.vestano-trade-page .mobile-stage-controls button:disabled { opacity: .35; }
 @media (max-width: 768px) {
   .vestano-trade-page { --gutter: clamp(16px, 5vw, 28px); min-width: 0; }
   .vestano-trade-page .site-header {
@@ -44,7 +46,13 @@
   .vestano-trade-page .experience-tools > span { font-size: 8px; line-height: 1.5; letter-spacing: .8px; }
   .vestano-trade-page .experience-tools button { min-height: 44px; padding: 8px 0 8px 12px; font-size: 12px; flex-shrink: 0; }
   .vestano-trade-page .journey-bottom { position: static; grid-area: 5 / 1; padding-top: 8px; gap: 0; min-width: 0; }
-  .vestano-trade-page .stage-nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; width: 100%; min-width: 0; }
+  .vestano-trade-page .stage-nav { display: none; }
+  .vestano-trade-page .mobile-stage-controls { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px; }
+  .vestano-trade-page .mobile-stage-controls button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 62px; min-height: 48px; border: 1px solid #a9c9ee55; background: #0a2c53c9; padding: 9px; color: #f3f8ff; font-size: 13px; }
+  .vestano-trade-page .mobile-stage-controls button:disabled { opacity: .35; }
+  .vestano-trade-page .mobile-stage-controls label { display: flex; align-items: center; justify-content: center; min-width: 0; flex: 1; gap: 6px; }
+  .vestano-trade-page .mobile-stage-controls label > span { font-size: 10px; white-space: nowrap; color: #ffd08b; }
+  .vestano-trade-page .mobile-stage-controls select { min-width: 0; max-width: 150px; width: 100%; min-height: 48px; border: 0; background: #0a2c53; color: #f3f8ff; padding: 7px 3px; font-size: 16px; }
   .vestano-trade-page .stage-nav button { min-height: 48px; padding: 4px 0; min-width: 0; }
   .vestano-trade-page .stage-nav button > span:last-child { font-size: clamp(8px, 2.45vw, 11px); white-space: normal; overflow-wrap: anywhere; gap: 4px; }
   .vestano-trade-page .stage-nav small { font-size: 9px; }
@@ -127,7 +135,13 @@
   .vestano-trade-page .experience-tools button { font-size: 12px; min-height: 44px; }
   .vestano-trade-page .journey-bottom { position: static; grid-area: 3 / 2; padding-top: 0; }
   .vestano-trade-page .scroll-cue, .vestano-trade-page .journey-percent { display: none; }
-  .vestano-trade-page .stage-nav { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+  .vestano-trade-page .stage-nav { display: none; }
+  .vestano-trade-page .mobile-stage-controls { display: flex; width: 100%; align-items: center; gap: 6px; }
+  .vestano-trade-page .mobile-stage-controls button { min-width: 44px; min-height: 48px; padding: 8px; border: 1px solid #a9c9ee55; background: #0a2c53c9; color: #f3f8ff; font-size: 16px; }
+  .vestano-trade-page .mobile-stage-controls button > span { display: none; }
+  .vestano-trade-page .mobile-stage-controls label { display: flex; min-width: 0; flex: 1; align-items: center; gap: 6px; }
+  .vestano-trade-page .mobile-stage-controls label > span { font-size: 10px; white-space: nowrap; color: #ffd08b; }
+  .vestano-trade-page .mobile-stage-controls select { width: 100%; min-width: 0; min-height: 48px; font-size: 16px; background: #0a2c53; color: #f3f8ff; border: 0; }
   .vestano-trade-page .stage-nav button { min-height: 44px; }
   .vestano-trade-page .stage-nav button > span:last-child { font-size: 9px; gap: 3px; white-space: normal; overflow-wrap: anywhere; }
   .vestano-trade-page .stage-nav small { font-size: 8px; }

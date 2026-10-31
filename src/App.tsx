@@ -97,7 +97,7 @@ export default function App({ quoteHref, contactHref, withShell = true }: Enquir
     return () => window.removeEventListener('hashchange', handleHash);
   }, [fallback]);
   function goToStage(index: number) {
-    if (fallback) document.getElementById(`step-${index}`)?.scrollIntoView({ behavior: 'instant' });
+    if (fallback) { setCurrent(index); document.getElementById(`step-${index}`)?.scrollIntoView({ behavior: 'instant' }); }
     else if (trigger.current) {
       const t = trigger.current; const at = index === 5 ? .998 : STAGE_STARTS[index] + .005;
       window.scrollTo({ top: t.start + (t.end - t.start) * at, behavior: 'instant' });
@@ -142,6 +142,11 @@ export default function App({ quoteHref, contactHref, withShell = true }: Enquir
           {!fallback && routeVisible && current >= 2 && current <= 4 && <RouteOverlay key={`${mode}-${current}`} progress={percent / 100} mode={mode} />}
           <div className="experience-tools"><span>{fallback ? 'A JOURNEY, STEP BY STEP' : 'SCROLL TO MOVE THE WORLD'}</span><button onClick={() => { setStepsView(!fallback); if (fallback) { setFailed(false); setReady(false); } }} disabled={reduced}>{fallback ? (reduced ? 'Reduced motion enabled' : 'Explore in 3D') : 'View without motion'} <span>{fallback ? '↗' : '↘'}</span></button></div>
           <div className="journey-bottom">
+            <nav className="mobile-stage-controls" aria-label="Journey stage controls">
+              <button onClick={() => goToStage(current - 1)} disabled={current === 0} aria-label="Previous journey stage">← <span>Back</span></button>
+              <label><span>0{current + 1} / 06</span><select aria-label="Choose a journey stage" value={current} onChange={event => goToStage(Number(event.target.value))}>{journeyStages.map((stage, index) => <option key={stage.short} value={index}>{stage.short}</option>)}</select></label>
+              <button onClick={() => goToStage(current + 1)} disabled={current === journeyStages.length - 1} aria-label="Next journey stage"><span>Next</span> →</button>
+            </nav>
             <div className="scroll-cue"><span className="scroll-mouse" /><div>{fallback ? 'EXPLORE AT YOUR PACE' : 'SCROLL TO EXPLORE'}<small>{mode === 'import' ? 'CHINA → KERALA' : 'KERALA → WORLD'}</small></div></div>
             <nav className="stage-nav" aria-label="Journey stages">{journeyStages.map((stage, i) => <button key={stage.short} onClick={() => goToStage(i)} className={!fallback && current === i ? 'active' : ''} aria-label={`Stage ${i + 1}: ${stage.short}`} aria-current={!fallback && current === i ? 'step' : undefined}><span className="stage-track"><span style={{ width: current > i ? '100%' : current === i ? `${Math.max(4, (percent / 100 - STAGE_STARTS[i]) / ((STAGE_STARTS[i + 1] ?? 1) - STAGE_STARTS[i]) * 100)}%` : '0%' }} /></span><span><small>0{i + 1}</small> {stage.short}</span></button>)}</nav>
             <span className="journey-percent">{String(fallback ? 0 : percent).padStart(2, '0')}<small>%</small></span>
