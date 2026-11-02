@@ -32,7 +32,7 @@ test('stock addition retains the exact source drawing, layout and plan extract',
   const lock=JSON.parse(fs.readFileSync('tests/fixtures/warehouse-layout-lock.json','utf8')) as Record<string,string>;
   for(const [file,expected]of Object.entries(lock))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex'),expected,`${file} was changed`);
 });
-test('billing correction does not rearrange any existing racks, pallets, pods or perimeter',()=>{
+test('corrected racks and untouched pallets, pods and perimeter retain their audited coordinates',()=>{
   const lock=JSON.parse(fs.readFileSync('tests/fixtures/warehouse-storage-lock.json','utf8')) as Record<string,string>;
   for(const [key,expected]of Object.entries(lock))assert.equal(crypto.createHash('sha256').update(JSON.stringify(data[key as keyof WarehouseLayout])).digest('hex'),expected,key+' changed');
 });

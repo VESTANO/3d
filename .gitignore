@@ -8,3 +8,4 @@ deliverables/
 cad-source/*.raw.json
 cad-source/floor-candidate.json
 cad-source/*.png
+cad-source/rack-audit.json

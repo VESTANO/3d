@@ -35,8 +35,8 @@
   .wh-workspace { display: flex; flex-direction: column; height: auto; min-height: 0; }
   .wh-viewer { order: 1; height: clamp(400px, 78svh, 800px); min-height: 400px; }
   .wh-toolbar { display: flex; flex-direction: column; align-items: stretch; gap: 8px; height: auto; flex: 0 0 auto; padding: 8px 12px; }
-  .wh-view-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; }
-  .wh-view-modes button { min-width: 0; min-height: 44px; font-size: 12px; padding: 8px 4px; }
+  .wh-view-modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
+  .wh-view-modes button { min-width: 0; min-height: 44px; font-size: 11px; padding: 8px 3px; }
   .wh-view-modes button > span { margin-left: 3px; }
   .wh-tool-actions { width: 100%; gap: 6px; justify-content: flex-end; }
   .wh-tool-actions button { min-width: 44px; min-height: 44px; padding: 8px; font-size: 22px; background: #f2f6fa; border: 1px solid #dce6ef; }

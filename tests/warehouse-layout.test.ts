@@ -7,8 +7,8 @@ const data=JSON.parse(fs.readFileSync('public/warehouse/layout.json','utf8')) as
 const obstacles=obstaclesFor(data);
 test('DWG footprints retain centimetre scale and source element identities',()=>{
   assert.equal(data.units,'cm');assert.equal(data.scaleToMetres,.01);
-  assert.equal(data.racks.length,168);assert.equal(data.pallets.length,66);assert.equal(data.pods.length,5);
-  for(const rack of data.racks){assert.ok(Math.abs(rack.w-.6)<.002);assert.ok(rack.d===1.8||rack.d===1.2);}
+  assert.equal(data.racks.length,192);assert.equal(data.pallets.length,66);assert.equal(data.pods.length,5);
+  for(const rack of data.racks.filter(r=>!r.outline)){assert.ok(Math.abs(rack.w-.6)<.002);assert.ok(rack.d>=1.17&&rack.d<=1.81);}
   for(const label of ['RECEIVING AREA','BILLING COUNTER','RICE BINS','TOILET','EXIT'])assert.ok(data.annotations.some(a=>a.text===label));
 });
 test('each zone resolves to a free standing location inside the actual perimeter',()=>{

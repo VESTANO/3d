@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import type {Footprint, WarehouseLayout} from './layout';
+import {insetOutline} from './layout.ts';
 import {createStockPlan,WALL_STORAGE} from './stockPlan.ts';
 import {addSupermarketStock} from './stockModels.ts';
 
@@ -66,6 +67,19 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
   // Every fixture keeps its recovered CAD footprint. Merchandise is added separately.
   function rack(b:Footprint){
     const {x,z,w,d}=b;
+    if(b.outline){
+      const posts=insetOutline(b.outline,.05),deck=insetOutline(b.outline,.035);
+      for(const [px,pz]of posts){box([.055,3.15,.055],[px,1.575,pz],'#2168ac',.6);box([.07,.05,.07],[px,.02,pz],'#6f818d',.7);}
+      for(const y of [.2,1.12,2.12,2.98]){
+        const shape=new THREE.Shape(deck.map(p=>new THREE.Vector2(p[0],-p[1])));
+        const geometry=new THREE.ExtrudeGeometry(shape,{depth:.045,bevelEnabled:false,steps:1});
+        geometry.rotateX(-Math.PI/2);geometry.translate(0,y-.0225,0);
+        geometry.setIndex(Array.from({length:geometry.getAttribute('position').count},(_,i)=>i));
+        const material=mat('#c0c8c9',.6),list=batches.get(material)??[];list.push(geometry);batches.set(material,list);
+        posts.forEach((p,i)=>{const next=posts[(i+1)%posts.length];rod([p[0],y-.035,p[1]],[next[0],y-.035,next[1]],.035,'#df963d');});
+      }
+      return;
+    }
     for(const px of [x+.035,x+w-.035])for(const pz of [z+.04,z+d-.04]){
       box([.055,3.15,.065],[px,1.575,pz],'#2168ac',.6);
       box([.07,.05,.08],[px,.02,pz],'#6f818d',.7);
@@ -83,10 +97,11 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
     for(const offset of [.12,.54,1])box([b.w,.13,.12],[b.x+b.w/2,.13,b.z+offset],'#aa875e');
     for(let p=0;p<7;p++)box([b.w,.055,b.d/8],[b.x+b.w/2,.23,b.z+.07+p*(b.d-.14)/6],'#c4a178');
   });
-  data.pods.forEach((b,i)=>{
+  data.pods.forEach(b=>{
     box([b.w,.8,b.d],[b.x+b.w/2,.4,b.z+b.d/2],'#f0ece1');
     box([b.w,.055,b.d],[b.x+b.w/2,.83,b.z+b.d/2],'#6b828d',.6);
-    text('CATEGORY '+(i+1),[b.x+b.w/2,1.45,b.z+b.d/2],1.5,.2);
+    const number=[...data.pods].sort((a,b)=>a.x-b.x).findIndex(item=>item.id===b.id)+1;
+    text('CATEGORY '+number,[b.x+b.w/2,1.45,b.z+b.d/2],1.5,.2);
   });
   // Two rice-bin banks match the labelled strips in the lower-left of the plan.
   const grainCanvas=document.createElement('canvas');grainCanvas.width=grainCanvas.height=128;
@@ -144,6 +159,7 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
   rod([7,1,46.56],[11.2,3.1,46.56],.035,'#68808c');
   for(let step=0;step<7;step++)box([.6,(step+1)*.15,.18],[31.4,(step+1)*.075,37.7+step*.18],'#b9c3c7');
   // Floor markings leave goods footprints untouched.
+  for(const [x,z,endX,endZ]of data.hatchLines??[])rod([x,.02,z],[endX,.02,endZ],.007,'#d3ac50');
   for(const z of [30.1,33.95,45.5,48])box([24,.006,.045],[18,.012,z],'#d3ac50');
   text('RECEIVING',[25.5,.025,49],4,.45,'#edf4fb',true);
   text('DELIVERY',[30,.025,46.8],2.6,.35,'#edf4fb',true);

@@ -1,6 +1,12 @@
 import {Vector3} from 'three';
 import type {WarehouseLayout} from './layout.ts';
 
+export function planFrustum(aspect:number){
+  const width=34,height=55;
+  const halfHeight=Math.max(height,width/Math.max(.1,aspect))*.53;
+  return {left:-halfHeight*aspect,right:halfHeight*aspect,top:halfHeight,bottom:-halfHeight};
+}
+
 /** Fit every floor/roof corner with a margin, including narrow phone viewports. */
 export function overviewPose(bounds:WarehouseLayout['bounds'],aspect:number,verticalFov=46){
   const target=new Vector3((bounds.minX+bounds.maxX)/2,4,(bounds.minZ+bounds.maxZ)/2);
