@@ -11,7 +11,8 @@ globalThis.document={
   createElement:()=>({width:0,height:0,getContext:()=>({fillText(){},fillRect(){},putImageData(){},createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4)})})}),
   createElementNS:()=>({addEventListener(){},removeEventListener(){},set src(_value){}}),
 };
-const data=JSON.parse(fs.readFileSync('public/warehouse/layout.json','utf8'));
+const publicDirectory=process.argv[2]??'public/warehouse',sourceDirectory=process.argv[3]??'cad-source';
+const data=JSON.parse(fs.readFileSync(path.join(publicDirectory,'layout.json'),'utf8'));
 const scene=new THREE.Scene();buildInterior(scene,data,()=>{});scene.updateMatrixWorld(true);
 const triangles=[];
 scene.traverse(object=>{
@@ -25,9 +26,10 @@ scene.traverse(object=>{
   }
 });
 if(triangles.length!==data.racks.length*2)throw new Error('A top shelf is missing or incorrectly oriented.');
-let svg=fs.readFileSync('public/warehouse/floor-plan.svg','utf8');
-svg=svg.replace('<g fill="none"',`<g fill="#147ace" fill-opacity=".3">${triangles.join('')}</g><g fill="none"`);
+let svg=fs.readFileSync(path.join(publicDirectory,'floor-plan.svg'),'utf8');
+svg=svg.replace(/(<rect\b[^>]*\/>)/,background=>`${background}<g fill="#147ace" fill-opacity=".3">${triangles.join('')}</g>`);
 const require=createRequire(import.meta.url);
 await initWasm(fs.readFileSync(path.join(path.dirname(require.resolve('@resvg/resvg-wasm')),'index_bg.wasm')));
-fs.writeFileSync('cad-source/rack-plan-alignment.png',new Resvg(svg).render().asPng());
-console.log(JSON.stringify({rackBays:data.racks.length,topDeckTriangles:triangles.length,output:'cad-source/rack-plan-alignment.png'}));
+const output=path.join(sourceDirectory,'rack-plan-alignment.png');
+fs.writeFileSync(output,new Resvg(svg).render().asPng());
+console.log(JSON.stringify({rackBays:data.racks.length,topDeckTriangles:triangles.length,output}));

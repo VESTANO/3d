@@ -14,6 +14,25 @@ The production build is published from the root of the `gh-pages` branch. Reposi
 
 ## Warehouse · Paravoor DWG walkthrough
 
+### Warehouse 2 · revised DWG
+
+**Warehouse 2** in both navigation bars opens `#warehouse-2`. It uses the newly supplied 5,675,520-byte drawing, SHA-256 `6d6ad0b844d5d77bfa8364879d79b54575c13314d1b1eb480e588e6c4307547b`. The original `#warehouse` route and its source assets remain separate. Switching warehouse routes remounts the viewer so the old geometry, movement state and pending fetch are disposed.
+
+The revised file includes multiple plan copies. The selected titled developmental ground-floor sheet uses the region recorded in `cad-source/warehouse-2/region.json`, with source centimetres converted to metres. The new model contains **171 rack bays, 58 rice pallets, eight work tables and 30 rice-bin compartments**, plus source-derived receiving/dispatch partitions, room walls and zone positions. The model retains the revised lower storage and receiving arrangement. Billing blocks elsewhere in the CAD file are outside this selected plan and are not added to it. Equipment heights, roof, finishes and representative stock remain illustrative interpretations of a 2D drawing.
+
+The second drawing, its floor-plan extract and derived layout live in `public/warehouse-2/`. `src/warehouse/profiles.ts` maps the two routes to their own asset directory and cache revision. Shared 3D, orthographic Top view, Floor plan, touch controls and Walk inside work with the selected drawing's layout and collision geometry.
+
+To regenerate the second model without overwriting the first:
+
+```sh
+node scripts/read-warehouse-dwg.mjs public/warehouse-2/paravoor.dwg cad-source/warehouse-2 public/warehouse-2
+node scripts/inspect-warehouse-plan.mjs cad-source/warehouse-2 public/warehouse-2 cad-source/warehouse-2/region.json
+node scripts/build-warehouse-2-data.mjs
+node --experimental-strip-types scripts/audit-warehouse-racks.mjs public/warehouse-2 cad-source/warehouse-2
+```
+
+The geometry audit projects all **342 rack-top triangles** onto this drawing; the ignored diagnostic is `cad-source/warehouse-2/rack-plan-alignment.png`. Automated checks cover route/asset isolation, source-file hashes, every rack edge, pallet/table polyline bounds, rice stock, walking collision at the new partitions and finite generated geometry. Browser and physical-device visual verification have not been repeated under the earlier declined browser access.
+
 Open **`http://127.0.0.1:5173/#warehouse`**, or choose **Warehouse** in the navbar. This is a separate lazy-loaded page; the import/export journey remains available through its navigation.
 
 The supplied `paravoor.dwg` was parsed locally using LibreDWG WebAssembly. Its header and drawing note specify **centimetres**. The floor model uses recovered source coordinates, converted to metres, rather than a generic rectangular rack layout:

@@ -23,10 +23,11 @@ export function rackSourceEdges(source){
 
 /** Recover the actual faces between adjacent crossbars. Thin double lines and
  * gaps are retained; fixed 1.8m guesses previously skipped or duplicated bays. */
-export function extractRackFootprints(edges){
+export function extractRackFootprints(edges,options={}){
+  const width=options.width??.6,minDepth=options.minDepth??1.17,maxDepth=options.maxDepth??1.81;
   const horizontals=edges.filter(e=>close(e.a[1],e.b[1]));
   const verticals=edges.filter(e=>close(e.a[0],e.b[0]));
-  const starts=new Set(horizontals.filter(e=>close(Math.abs(e.b[0]-e.a[0]),.6)).map(e=>round(Math.min(e.a[0],e.b[0]))));
+  const starts=new Set(horizontals.filter(e=>close(Math.abs(e.b[0]-e.a[0]),width)).map(e=>round(Math.min(e.a[0],e.b[0]))));
   const supports=(x,z,end)=>{
     let cursor=z;
     const matches=verticals.filter(e=>close(e.a[0],x)).map(e=>({lo:Math.min(e.a[1],e.b[1]),hi:Math.max(e.a[1],e.b[1]),edge:e})).sort((a,b)=>a.lo-b.lo);
@@ -41,19 +42,19 @@ export function extractRackFootprints(edges){
   };
   const racks=[];
   for(const x of [...starts].sort((a,b)=>a-b)){
-    const crosses=horizontals.filter(e=>Math.min(e.a[0],e.b[0])<=x+.002&&Math.max(e.a[0],e.b[0])>=x+.6-.002);
+    const crosses=horizontals.filter(e=>Math.min(e.a[0],e.b[0])<=x+.002&&Math.max(e.a[0],e.b[0])>=x+width-.002);
     const levels=[...new Set(crosses.map(e=>e.a[1]))].sort((a,b)=>a-b);
     for(let i=0;i<levels.length-1;i++){
       const z=levels[i],end=levels[i+1],d=round(end-z);
-      if(d<1.17||d>1.81)continue;
-      const left=supports(x,z,end),right=supports(round(x+.6),z,end);
+      if(d<minDepth||d>maxDepth)continue;
+      const left=supports(x,z,end),right=supports(round(x+width),z,end);
       if(!left||!right)continue;
       const boundaries=crosses.filter(e=>close(e.a[1],z)||close(e.a[1],end));
       const handles=[...new Set([...left,...right,...boundaries].flatMap(e=>e.handles))];
-      racks.push({id:`rack-${x}-${z}`,x,z,w:.6,d,layer:'0',sourceHandles:handles});
+      racks.push({id:`rack-${x}-${z}`,x,z,w:width,d,layer:'0',sourceHandles:handles});
     }
   }
-  return [...racks,...extractPerimeterRacks(edges)];
+  return options.perimeter===false?racks:[...racks,...extractPerimeterRacks(edges)];
 }
 
 function extractPerimeterRacks(edges){

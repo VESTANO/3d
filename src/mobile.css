@@ -1,6 +1,9 @@
 /* Mobile layout uses the available viewport instead of a fixed minimum height. */
 .vestano-trade-page .mobile-stage-controls { display: none; }
 .vestano-trade-page .mobile-stage-controls button:disabled { opacity: .35; }
+@media (min-width: 769px) and (max-width: 960px) {
+  .vestano-trade-page .brand-category, .vestano-trade-page .brand-divider { display: none; }
+}
 @media (max-width: 768px) {
   .vestano-trade-page { --gutter: clamp(16px, 5vw, 28px); min-width: 0; }
   .vestano-trade-page .site-header {

@@ -55,7 +55,7 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
   const beamMat=mat('#677987',.6,.46);
   for(const z of [11,18,25,32,39,46]){
     const beam=new THREE.Mesh(new THREE.BoxGeometry(27.7,.22,.14),beamMat);beam.position.set(17.05,6.6,z);roof.add(beam);
-    for(const x of [3.2,30.9]){
+    for(const x of data.variant==='warehouse-2'?[]:[3.2,30.9]){
       box([.22,6.6,.22],[x,3.3,z],'#688298',.6);
       box([.5,.12,.5],[x,.04,z],'#a1aeb1',.6);
       for(const stripe of [.5,.8,1.1])box([.24,.12,.24],[x,stripe,z],'#e3b149');
@@ -101,7 +101,7 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
     box([b.w,.8,b.d],[b.x+b.w/2,.4,b.z+b.d/2],'#f0ece1');
     box([b.w,.055,b.d],[b.x+b.w/2,.83,b.z+b.d/2],'#6b828d',.6);
     const number=[...data.pods].sort((a,b)=>a.x-b.x).findIndex(item=>item.id===b.id)+1;
-    text('CATEGORY '+number,[b.x+b.w/2,1.45,b.z+b.d/2],1.5,.2);
+    text((data.variant==='warehouse-2'?'WORK TABLE ':'CATEGORY ')+number,[b.x+b.w/2,1.45,b.z+b.d/2],1.5,.2);
   });
   // Two rice-bin banks match the labelled strips in the lower-left of the plan.
   const grainCanvas=document.createElement('canvas');grainCanvas.width=grainCanvas.height=128;
@@ -112,12 +112,23 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
   }
   const grainTexture=new THREE.CanvasTexture(grainCanvas);grainTexture.wrapS=grainTexture.wrapT=THREE.RepeatWrapping;grainTexture.repeat.set(2,2);grainTexture.colorSpace=THREE.SRGBColorSpace;
   const riceMaterial=mat('#c2ab70');riceMaterial.map=grainTexture;riceMaterial.bumpMap=grainTexture;riceMaterial.bumpScale=.004;riceMaterial.roughness=.98;
-  for(const start of [35.3,41.4])for(let k=0;k<12;k++){
+  for(const start of data.variant==='warehouse-2'?[]:[35.3,41.4])for(let k=0;k<12;k++){
     const z=start+k*.36;
     box([.6,.8,.34],[6.15,.4,z],'#c6ccbf',.45);
     box([.5,.06,.29],[6.15,.83,z],'#c2ab70');
     box([.035,.24,.33],[6.47,.72,z],'#e0e8e6',.65);
     box([.06,.08,.14],[6.52,.63,z],'#3d5567');
+  }
+  for(const b of data.riceBins??[]){
+    box([b.w,.8,b.d],[b.x+b.w/2,.4,b.z+b.d/2],'#c6ccbf',.45);
+    box([b.w-.08,.06,b.d-.05],[b.x+b.w/2,.83,b.z+b.d/2],'#c2ab70');
+    box([.035,.24,b.d-.01],[b.x+b.w-.018,.72,b.z+b.d/2],'#e0e8e6',.65);
+  }
+  for(const wall of data.partitions??[]){
+    const [a,b]=[wall.a,wall.b],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
+    const geometry=new THREE.BoxGeometry(length,wall.height,wall.thickness);
+    geometry.rotateY(-Math.atan2(b[1]-a[1],b[0]-a[0]));geometry.translate((a[0]+b[0])/2,wall.height/2,(a[1]+b[1])/2);
+    const material=mat('#d7e3e8',.15),list=batches.get(material)??[];list.push(geometry);batches.set(material,list);
   }
   // Layer D RACK: perimeter storage, kept outside the main circulation aisles.
   for(const run of WALL_STORAGE){
@@ -148,7 +159,7 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
     text('BILLING '+String(number).padStart(2,'0'),[cx,1.9,z+d/2],1.5,.19);
   }
   // Toilets and stairs are retained as source-plan service elements.
-  for(let i=0;i<3;i++){
+  for(let i=0;i<(data.variant==='warehouse-2'?0:3);i++){
     const x=12.2+i*1.9;
     box([.1,2.8,1.8],[x,1.4,49],'#dbddd8');box([1.8,2.8,.1],[x+.9,1.4,49.9],'#dbddd8');
     box([1.8,.6,.1],[x+.9,2.5,48.1],'#dbddd8');box([.82,2.1,.08],[x+.9,1.05,48.08],'#5a7f91');
@@ -160,11 +171,15 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
   for(let step=0;step<7;step++)box([.6,(step+1)*.15,.18],[31.4,(step+1)*.075,37.7+step*.18],'#b9c3c7');
   // Floor markings leave goods footprints untouched.
   for(const [x,z,endX,endZ]of data.hatchLines??[])rod([x,.02,z],[endX,.02,endZ],.007,'#d3ac50');
-  for(const z of [30.1,33.95,45.5,48])box([24,.006,.045],[18,.012,z],'#d3ac50');
-  text('RECEIVING',[25.5,.025,49],4,.45,'#edf4fb',true);
-  text('DELIVERY',[30,.025,46.8],2.6,.35,'#edf4fb',true);
-  text('RICE PALLETS',[16.8,.025,45.5],5,.4,'#edf4fb',true);
-  text('RICE BINS',[6.1,2.1,39.8],1.8,.22);
+  if(data.variant==='warehouse-2'){
+    for(const note of data.annotations.filter(note=>/^(RECEIVING AREA|DISPATCHING|STAGGING AREA|ORDER CONSOLTATION|RICE BINS|TOILET|ROOM)$/.test(note.text)))text(note.text,[note.point[0]+.5,.025,note.point[1]],Math.min(2.8,note.text.length*.13),.18,'#edf4fb',true);
+  }else{
+    for(const z of [30.1,33.95,45.5,48])box([24,.006,.045],[18,.012,z],'#d3ac50');
+    text('RECEIVING',[25.5,.025,49],4,.45,'#edf4fb',true);
+    text('DELIVERY',[30,.025,46.8],2.6,.35,'#edf4fb',true);
+    text('RICE PALLETS',[16.8,.025,45.5],5,.4,'#edf4fb',true);
+    text('RICE BINS',[6.1,2.1,39.8],1.8,.22);
+  }
   for(const pos of [[3.5,2.6,4.6],[3.5,2.6,31.1]])text('EXIT',pos,1,.27,'#397c65');
   const logo=new THREE.TextureLoader().load('./vestano-logo.png',invalidate);logo.colorSpace=THREE.SRGBColorSpace;
   const brand=new THREE.Mesh(new THREE.PlaneGeometry(2.1,1.41),new THREE.MeshBasicMaterial({map:logo,side:THREE.DoubleSide}));brand.position.set(24.8,3.3,49.8);root.add(brand);

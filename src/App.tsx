@@ -7,6 +7,7 @@ import type { JourneyMode } from './journey/timeline';
 import { RouteOverlay } from './components/RouteOverlay';
 import { Enquiry } from './components/Enquiry';
 import type { EnquiryLinks } from './components/Enquiry';
+import {WAREHOUSE_PROFILES} from './warehouse/profiles';
 
 gsap.registerPlugin(ScrollTrigger);
 const LogisticsScene = lazy(() => import('./components/LogisticsScene'));
@@ -108,7 +109,7 @@ export default function App({ quoteHref, contactHref, withShell = true }: Enquir
     <a className="skip-link" href="#services">Skip the animated journey</a>
     {withShell && <header className="site-header">
       <a className="wordmark" href="#" aria-label="Vestano, top of page"><img className="brand-logo" src="./vestano-logo.png" alt="Vestano" width="246" height="165" /><span className="brand-divider" /><span className="brand-category">IMPORT & EXPORT</span></a>
-      <nav id="main-navigation" className={menuOpen ? 'nav open' : 'nav'} aria-label="Main navigation"><a href="#journey" onClick={() => setMenuOpen(false)}>The journey</a><a href="#warehouse" onClick={() => setMenuOpen(false)}>Warehouse</a><a href="#services" onClick={() => setMenuOpen(false)}>Our expertise</a><a className="nav-contact" href="#enquiry" onClick={() => setMenuOpen(false)}>Let’s connect <span>↗</span></a></nav>
+      <nav id="main-navigation" className={menuOpen ? 'nav open' : 'nav'} aria-label="Main navigation"><a href="#journey" onClick={() => setMenuOpen(false)}>The journey</a>{WAREHOUSE_PROFILES.map(profile=><a key={profile.id} href={`#${profile.id}`} onClick={()=>setMenuOpen(false)}>{profile.label}</a>)}<a href="#services" onClick={() => setMenuOpen(false)}>Our expertise</a><a className="nav-contact" href="#enquiry" onClick={() => setMenuOpen(false)}>Let’s connect <span>↗</span></a></nav>
       <button ref={menuButton} className="menu-toggle" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-controls="main-navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}><span /><span /></button>
     </header>}
 
