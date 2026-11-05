@@ -47,6 +47,7 @@ export default function WarehousePage({profile}:{profile:WarehouseProfile}){
   },[expanded]);
   function changeMode(next:ViewMode){setMode(next);setRoof(next==='walk');if(next==='walk')setTouchActive(true);input.current.keys.clear();}
   function focusZone(id:string){setZone(id);setVisit(n=>n+1);if(mode==='plan')changeMode('overview');}
+  function showStock(target:'racks'|'pallets'){setZone(target);setVisit(n=>n+1);changeMode(target==='racks'?'walk':'overview');setTouchActive(true);}
   function toggleFullscreen(){
     if(expanded||document.fullscreenElement){setExpanded(false);void document.exitFullscreen?.().catch(()=>{});return;}
     setExpanded(true);setTouchActive(true);const request=viewer.current?.requestFullscreen?.();void request?.catch(()=>{});
@@ -76,7 +77,7 @@ export default function WarehousePage({profile}:{profile:WarehouseProfile}){
         <p className="wh-intro">Your drawing’s rack and pallet positions, stocked with supermarket goods. Step inside and explore the aisles at eye level.</p>
         <div className="wh-source"><span className="wh-file-icon">DWG</span><div><strong>paravoor.dwg</strong><small>GROUND FLOOR · DIMENSIONS IN CM</small></div><span className="wh-source-dot" /></div>
         <div className="wh-facts"><div><strong>{data?.racks.length??'—'}</strong><span>rack bay footprints</span></div><div><strong>{data?.pallets.length??'—'}</strong><span>pallet positions</span></div><div><strong>{data?.pods.length??'—'}</strong><span>{profile.id==='warehouse-2'?'work tables':'category displays'}</span></div></div>
-        <div className="wh-stock-note"><strong>DWG LAYOUT RETAINED</strong><p>Pallets: rice sacks.<br/>Racks: chilli, turmeric, wheat flour, spices and supermarket packets.</p><small>Representative stock, placed within the original storage footprints.</small></div>
+        <div className="wh-stock-note"><strong>KERALA SUPERMARKET STOCK</strong><p>Pallets: Matta, Jaya, Ponni &amp; Kaima rice sacks.<br/>Racks: puttu, appam &amp; idiyappam powders, spices, pulses, coconut oil, pickles &amp; snacks.</p><small>Illustrative grocery assortment, fitted to the original storage footprints.</small><div className="wh-stock-links"><button disabled={!data||!!error} onClick={()=>showStock('racks')}>See stocked racks ↗</button><button disabled={!data||!!error} onClick={()=>showStock('pallets')}>View rice pallets ↗</button></div></div>
         <div className="wh-zone-heading"><span>EXPLORE THE SPACE</span><small>Choose a viewpoint</small></div>
         <nav className="wh-zones" aria-label="Warehouse zones">{data?.zones.map((item,i)=><button key={item.id} onClick={()=>focusZone(item.id)} aria-pressed={zone===item.id} className={zone===item.id?'active':''}><small>{String(i+1).padStart(2,'0')}</small><span>{item.name}</span><span>↗</span></button>)}</nav>
         <button className="wh-details-toggle" aria-expanded={showDetails} onClick={()=>setShowDetails(!showDetails)}>Drawing & model notes <span>{showDetails?'−':'+'}</span></button>

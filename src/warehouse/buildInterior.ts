@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import type {Footprint, WarehouseLayout} from './layout';
 import {insetOutline} from './layout.ts';
-import {createStockPlan,WALL_STORAGE} from './stockPlan.ts';
+import {createStockPlan,WALL_STORAGE,KERALA_SECTIONS,rackSectionIndex} from './stockPlan.ts';
 import {addSupermarketStock} from './stockModels.ts';
 
 export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:()=>void){
@@ -92,6 +92,22 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
     rod([x+.04,.3,z+.05],[x+.04,1.8,z+d-.05],.012,'#7d8f9b');
   }
   data.racks.forEach(rack);
+  // Suspended section signs sit above the source drawing's cross aisle.
+  const mainRacks=data.racks.filter(b=>!b.outline&&b.x<30);
+  const runs:{start:number;end:number}[]=[];
+  for(const b of [...mainRacks].sort((a,b)=>a.z-b.z)){
+    const previous=runs.at(-1);if(previous&&b.z<=previous.end+.1)previous.end=Math.max(previous.end,b.z+b.d);else runs.push({start:b.z,end:b.z+b.d});
+  }
+  const gap=runs.slice(1).map((run,index)=>({size:run.start-runs[index].end,mid:(run.start+runs[index].end)/2})).sort((a,b)=>b.size-a.size)[0];
+  if(gap)KERALA_SECTIONS.forEach((section,index)=>{
+    const bays=mainRacks.filter(b=>rackSectionIndex(b)===index);if(!bays.length)return;
+    const cx=(Math.min(...bays.map(b=>b.x))+Math.max(...bays.map(b=>b.x+b.w)))/2,z=gap.mid;
+    box([2.4,.44,.045],[cx,3.72,z],section.color);
+    for(const x of [cx-.8,cx+.8])rod([x,3.94,z],[x,6.6,z],.006,'#7d8f9b');
+    const title=String(index+1).padStart(2,'0')+'  '+section.name;
+    const front=text(title,[cx,3.74,z+.024],2.18,.19,'#ffffff');front.name='aisle-sign-'+index;
+    const back=text(title,[cx,3.74,z-.024],2.18,.19,'#ffffff');back.rotation.y=Math.PI;
+  });
   data.pallets.forEach(b=>{
     for(const dx of [.14,.6,1.06])for(const dz of [.14,1.06])box([.16,.13,.16],[b.x+dx,.065,b.z+dz],'#98724f');
     for(const offset of [.12,.54,1])box([b.w,.13,.12],[b.x+b.w/2,.13,b.z+offset],'#aa875e');
