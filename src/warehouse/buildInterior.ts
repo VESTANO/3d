@@ -4,6 +4,7 @@ import type {Footprint, WarehouseLayout} from './layout';
 import {insetOutline} from './layout.ts';
 import {createStockPlan,WALL_STORAGE,KERALA_SECTIONS,rackSectionIndex} from './stockPlan.ts';
 import {addSupermarketStock} from './stockModels.ts';
+import {deliveryLayout,perimeterWallSections,DELIVERY_CLEAR_HEIGHT} from './delivery.ts';
 
 export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:()=>void){
   const materials=new Map<string,THREE.MeshStandardMaterial>();
@@ -43,12 +44,42 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
   for(let z=1;z<=53;z+=2)box([34,.006,.012],[17,.004,z],'#28619e');
   const wallMaterial=mat('#e9e7df',.05,.8);wallMaterial.transparent=true;
   const walls=new THREE.Group();root.add(walls);
-  data.perimeter.forEach((a,i)=>{
-    const b=data.perimeter[(i+1)%data.perimeter.length];
+  const delivery=deliveryLayout(data);
+  for(const {a,b,bottom,top}of perimeterWallSections(data,delivery)){
     const length=Math.hypot(b[0]-a[0],b[1]-a[1]);
-    const mesh=new THREE.Mesh(new THREE.BoxGeometry(length,6.6,.18),wallMaterial);
-    mesh.position.set((a[0]+b[0])/2,3.3,(a[1]+b[1])/2);mesh.rotation.y=-Math.atan2(b[1]-a[1],b[0]-a[0]);mesh.castShadow=true;mesh.receiveShadow=true;walls.add(mesh);
-  });
+    const mesh=new THREE.Mesh(new THREE.BoxGeometry(length,top-bottom,.18),wallMaterial);
+    mesh.name='perimeter-wall';mesh.userData={a,b,bottom,top};
+    mesh.position.set((a[0]+b[0])/2,(bottom+top)/2,(a[1]+b[1])/2);mesh.rotation.y=-Math.atan2(b[1]-a[1],b[0]-a[0]);mesh.castShadow=true;mesh.receiveShadow=true;walls.add(mesh);
+  }
+  // The delivery lane and its two jamb-defined openings were previously hidden
+  // by a continuous perimeter wall. Keep their actual CAD positions clear.
+  if(delivery){
+    for(const pier of delivery.piers){
+      box([pier.w,DELIVERY_CLEAR_HEIGHT,pier.d],[pier.x+pier.w/2,DELIVERY_CLEAR_HEIGHT/2,pier.z+pier.d/2],'#e3b149');
+      for(const y of [.35,.65,.95])box([.006,.12,pier.d],[pier.x-.003,y,pier.z+pier.d/2],'#263d53');
+    }
+    for(const bay of delivery.bays){
+      const mid=(bay.start+bay.end)/2,cx=(delivery.west+delivery.innerX)/2,frameX=(delivery.innerX+delivery.frameX)/2;
+      const anchor=new THREE.Object3D();anchor.name=bay.id;anchor.position.set(cx,0,mid);
+      anchor.userData={sourceId:bay.source,sourcePoint:bay.sourcePoint,outline:bay.outline,opening:{x:frameX,start:bay.start,end:bay.end}};root.add(anchor);
+      box([delivery.frameX-delivery.innerX,.18,bay.end-bay.start],[frameX,DELIVERY_CLEAR_HEIGHT+.09,mid],'#688298',.6);
+      box([delivery.outerX-delivery.frameX,.018,bay.end-bay.start],[(delivery.outerX+delivery.frameX)/2,.012,mid],'#a9b9c0');
+      const shape=new THREE.Shape(bay.outline.map(p=>new THREE.Vector2(p[0],-p[1]))),geometry=new THREE.ShapeGeometry(shape);
+      geometry.rotateX(-Math.PI/2);geometry.translate(0,.014,0);
+      const paint=new THREE.Mesh(geometry,new THREE.MeshBasicMaterial({color:'#57ceca',transparent:true,opacity:.18,depthWrite:false}));paint.name=bay.id+'-floor';root.add(paint);
+      bay.outline.forEach((p,i)=>{const next=bay.outline[(i+1)%bay.outline.length];rod([p[0],.027,p[1]],[next[0],.027,next[1]],.015,'#e3b149');});
+      const clearStart=bay.outline[0][1],clearEnd=Math.min(bay.outline[2][1],bay.outline[3][1]);
+      const title=text('DELIVERY '+String(bay.number).padStart(2,'0'),[cx,.03,(clearStart+clearEnd)/2],Math.min(3.4,(clearEnd-clearStart)*.78),.3,'#f1f7fb',true);title.rotateZ(-Math.PI/2);title.name=bay.id+'-floor-label';
+      const arrowX=delivery.innerX-.22;
+      rod([arrowX-.6,.036,mid],[arrowX,.036,mid],.025,'#f1cf8b');
+      for(const side of [-1,1])rod([arrowX-.22,.036,mid+side*.18],[arrowX,.036,mid],.025,'#f1cf8b');
+      box([.065,.58,bay.end-bay.start-.35],[frameX,3.8,mid],'#153a61');
+      for(const side of [-1,1]){
+        const sign=text('DELIVERY BAY '+String(bay.number).padStart(2,'0'),[frameX+side*.034,3.8,mid],bay.end-bay.start-.65,.3,'#ffffff');
+        sign.rotation.y=side*Math.PI/2;sign.name=bay.id+'-sign';
+      }
+    }
+  }
   const roof=new THREE.Group();root.add(roof);
   const roofMat=mat('#c8d1d4',.5,.5);
   const roofMesh=new THREE.Mesh(new THREE.BoxGeometry(29.2,.16,41),roofMat);roofMesh.position.set(17.35,7.25,29);roofMesh.receiveShadow=true;roofMesh.castShadow=true;roof.add(roofMesh);
@@ -190,9 +221,9 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
   if(data.variant==='warehouse-2'){
     for(const note of data.annotations.filter(note=>/^(RECEIVING AREA|DISPATCHING|STAGGING AREA|ORDER CONSOLTATION|RICE BINS|TOILET|ROOM)$/.test(note.text)))text(note.text,[note.point[0]+.5,.025,note.point[1]],Math.min(2.8,note.text.length*.13),.18,'#edf4fb',true);
   }else{
-    for(const z of [30.1,33.95,45.5,48])box([24,.006,.045],[18,.012,z],'#d3ac50');
+    const markingEnd=delivery?delivery.west-.12:30;
+    for(const z of [30.1,33.95,45.5,48])box([markingEnd-6,.006,.045],[(markingEnd+6)/2,.012,z],'#d3ac50');
     text('RECEIVING',[25.5,.025,49],4,.45,'#edf4fb',true);
-    text('DELIVERY',[30,.025,46.8],2.6,.35,'#edf4fb',true);
     text('RICE PALLETS',[16.8,.025,45.5],5,.4,'#edf4fb',true);
     text('RICE BINS',[6.1,2.1,39.8],1.8,.22);
   }

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {buildInterior} from './buildInterior';
 import {freePosition,moveWithCollision,obstaclesFor} from './layout';
-import {overviewPose,planFrustum} from './viewFraming';
+import {overviewPose,planFrustum,planFocus} from './viewFraming';
 import type {Point2,ViewMode,WarehouseLayout} from './layout';
 
 export interface WarehouseInput {keys:Set<string>;capture:()=>void}
@@ -13,7 +13,7 @@ export default function WarehouseStage(props:Props){
   const controller=useRef<{reset:()=>void;goToZone:()=>void;invalidate:()=>void;setInteraction:()=>void}|null>(null);
   useEffect(()=>{
     const mount=host.current!;let renderer:THREE.WebGLRenderer|undefined,scene:THREE.Scene|undefined,controls:OrbitControls|undefined;
-    let frame=0,observer:ResizeObserver|undefined,stopped=false,dirty=true,dragging=false,lookPointer:number|null=null,overviewFramed=true,previous:Point2=[0,0],yaw=0,pitch=0,lastMode:ViewMode=live.current.mode;
+    let frame=0,observer:ResizeObserver|undefined,stopped=false,dirty=true,dragging=false,lookPointer:number|null=null,overviewFramed=true,topFocused=false,previous:Point2=[0,0],yaw=0,pitch=0,lastMode:ViewMode=live.current.mode;
     let transition:{eye:THREE.Vector3;target:THREE.Vector3;from:THREE.Vector3;fromTarget:THREE.Vector3;t:number}|null=null;
     const keys=props.input.current.keys,colliders=obstaclesFor(props.data);
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -34,14 +34,15 @@ export default function WarehouseStage(props:Props){
       }else if(p.mode==='top'){
         if(renderer&&document.pointerLockElement===renderer.domElement)document.exitPointerLock?.();
         Object.assign(planCamera,planFrustum(mount.clientWidth/Math.max(1,mount.clientHeight)));
-        planCamera.zoom=1;planCamera.position.set(17,100,27.5);controls.target.set(17,0,27.5);
+        const focus=zone.focusBounds?planFocus(zone.focusBounds,mount.clientWidth/Math.max(1,mount.clientHeight)):{x:17,z:27.5,zoom:1};
+        topFocused=!!zone.focusBounds;planCamera.zoom=focus.zoom;planCamera.position.set(focus.x,100,focus.z);controls.target.set(focus.x,0,focus.z);
         planCamera.lookAt(controls.target);planCamera.updateProjectionMatrix();controls.enabled=p.interactive;
         transition=null;overviewFramed=true;controls.update();
       }else{
         if(renderer&&document.pointerLockElement===renderer.domElement)document.exitPointerLock?.();
         controls.enabled=p.mode==='overview'&&p.interactive;
         overviewFramed=true;
-        const {eye,target}=overviewPose(p.data.bounds,perspective.aspect,perspective.fov);
+        const {eye,target}=overviewPose(zone.focusBounds??p.data.bounds,perspective.aspect,perspective.fov,zone.focusBounds?4.8:8);
         transition={eye,target,from:camera.position.clone(),fromTarget:controls.target.clone(),t:reduced?1:0};
       }
       keys.clear();dragging=false;lookPointer=null;dirty=true;lastMode=p.mode;mount.dataset.mode=p.mode;
@@ -86,15 +87,20 @@ export default function WarehouseStage(props:Props){
       controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=!reduced;controls.dampingFactor=.085;controls.minDistance=3;controls.maxDistance=350;controls.maxPolarAngle=Math.PI/2-.025;
       controls.touches.ONE=THREE.TOUCH.ROTATE;controls.touches.TWO=THREE.TOUCH.DOLLY_PAN;
       const initial=overviewPose(props.data.bounds,perspective.aspect,perspective.fov);controls.target.copy(initial.target);camera.position.copy(initial.eye);controls.update();controls.addEventListener('change',()=>{dirty=true;});
-      controls.addEventListener('start',()=>{overviewFramed=false;transition=null;});
+      controls.addEventListener('start',()=>{overviewFramed=false;topFocused=false;transition=null;});
       props.input.current.capture=()=>{if(live.current.mode==='walk'){const request=renderer?.domElement.requestPointerLock?.();request?.catch(()=>{});}};
       controller.current={reset:changeView,setInteraction,invalidate:()=>{dirty=true;},goToZone:()=>{
         if(live.current.mode==='walk'){changeView();return;}
         overviewFramed=false;
         const zone=live.current.data.zones.find(z=>z.id===live.current.zone)!;
         if(live.current.mode==='top'){
-          planCamera.position.set(zone.point[0],100,zone.point[1]);controls!.target.set(zone.point[0],0,zone.point[1]);
-          planCamera.zoom=2;planCamera.updateProjectionMatrix();controls!.update();transition=null;dirty=true;return;
+          const bounds=zone.focusBounds,focus=bounds?planFocus(bounds,mount.clientWidth/Math.max(1,mount.clientHeight)):{x:zone.point[0],z:zone.point[1],zoom:2};
+          topFocused=!!bounds;planCamera.position.set(focus.x,100,focus.z);controls!.target.set(focus.x,0,focus.z);planCamera.zoom=focus.zoom;
+          planCamera.updateProjectionMatrix();controls!.update();transition=null;dirty=true;return;
+        }
+        if(zone.focusBounds){
+          const pose=overviewPose(zone.focusBounds,perspective.aspect,perspective.fov,4.8);overviewFramed=true;
+          transition={...pose,from:camera.position.clone(),fromTarget:controls!.target.clone(),t:reduced?1:0};dirty=true;return;
         }
         const target=new THREE.Vector3(zone.point[0],.8,zone.point[1]);
         transition={eye:target.clone().add(new THREE.Vector3(9,11,13)),target,from:camera.position.clone(),fromTarget:controls!.target.clone(),t:reduced?1:0};dirty=true;
@@ -103,10 +109,15 @@ export default function WarehouseStage(props:Props){
         if(!mount.clientWidth||!mount.clientHeight)return;
         const aspect=mount.clientWidth/mount.clientHeight;
         perspective.aspect=aspect;perspective.updateProjectionMatrix();Object.assign(planCamera,planFrustum(aspect));planCamera.updateProjectionMatrix();
+        if(live.current.mode==='top'&&topFocused){
+          const bounds=live.current.data.zones.find(zone=>zone.id===live.current.zone)?.focusBounds;
+          if(bounds){const focus=planFocus(bounds,aspect);planCamera.zoom=focus.zoom;planCamera.position.set(focus.x,100,focus.z);controls!.target.set(focus.x,0,focus.z);planCamera.updateProjectionMatrix();controls!.update();}
+        }
         renderer!.setPixelRatio(Math.min(window.devicePixelRatio,window.matchMedia('(max-width: 900px), (pointer: coarse)').matches?1.25:1.65));
         renderer!.setSize(mount.clientWidth,mount.clientHeight);
         if(live.current.mode==='overview'&&overviewFramed){
-          const pose=overviewPose(live.current.data.bounds,perspective.aspect,perspective.fov);transition=null;
+          const bounds=live.current.data.zones.find(zone=>zone.id===live.current.zone)?.focusBounds;
+          const pose=overviewPose(bounds??live.current.data.bounds,perspective.aspect,perspective.fov,bounds?4.8:8);transition=null;
           camera.position.copy(pose.eye);controls!.target.copy(pose.target);controls!.update();
         }
         dirty=true;

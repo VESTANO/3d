@@ -1,7 +1,9 @@
+import {deliveryLayout} from './delivery.ts';
+
 export type Point2 = [number, number];
 export interface Footprint { id: string; x: number; z: number; w: number; d: number; layer: string; outline?:Point2[];sourceHandles?:string[];group?:string }
 export interface BillingCounter extends Footprint {number:number; mirrored:boolean; sourceType:string; sourceHandles:string[]}
-export interface WarehouseZone { id: string; name: string; point: Point2; look: Point2; source: string }
+export interface WarehouseZone { id: string; name: string; point: Point2; look: Point2; source: string;focusBounds?:WarehouseLayout['bounds'] }
 export interface WarehouseLayout {
   variant?:'warehouse-2';sourceSha256?:string;
   riceBins?:Footprint[];partitions?:{id:string;a:Point2;b:Point2;height:number;thickness:number}[];
@@ -35,8 +37,9 @@ export function insidePolygon(x:number,z:number,polygon:Point2[]) {
   return inside;
 }
 export function obstaclesFor(data:WarehouseLayout):Obstacle[]{
-  if(data.variant==='warehouse-2')return [...data.racks,...data.pallets,...data.pods,...(data.riceBins??[]),...(data.partitions??[]).map(wall=>({x:Math.min(wall.a[0],wall.b[0]),z:Math.min(wall.a[1],wall.b[1]),w:Math.abs(wall.b[0]-wall.a[0]),d:Math.abs(wall.b[1]-wall.a[1]),segment:[wall.a,wall.b] as [Point2,Point2],thickness:wall.thickness})),{x:7,z:46.6,w:4.2,d:1.05},{x:31.1,z:37.7,w:.6,d:1.2},{x:12.15,z:48.1,w:5.7,d:1.8}];
-  return [...data.racks,...data.pallets,...data.pods,...data.billingCounters,
+  const jambs=deliveryLayout(data)?.piers??[];
+  if(data.variant==='warehouse-2')return [...data.racks,...data.pallets,...data.pods,...jambs,...(data.riceBins??[]),...(data.partitions??[]).map(wall=>({x:Math.min(wall.a[0],wall.b[0]),z:Math.min(wall.a[1],wall.b[1]),w:Math.abs(wall.b[0]-wall.a[0]),d:Math.abs(wall.b[1]-wall.a[1]),segment:[wall.a,wall.b] as [Point2,Point2],thickness:wall.thickness})),{x:7,z:46.6,w:4.2,d:1.05},{x:31.1,z:37.7,w:.6,d:1.2},{x:12.15,z:48.1,w:5.7,d:1.8}];
+  return [...data.racks,...data.pallets,...data.pods,...data.billingCounters,...jambs,
     {x:5.85,z:35.3,w:.65,d:4.5},{x:5.85,z:41.4,w:.65,d:4.5},
     {x:12.15,z:48.1,w:5.7,d:1.8},
     {x:7,z:46.6,w:4.2,d:1.05}, {x:31.1,z:37.7,w:.6,d:1.2},

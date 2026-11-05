@@ -1,14 +1,16 @@
-import {lazy,Suspense,useCallback,useEffect,useRef,useState} from 'react';
+import {lazy,Suspense,useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import type {Point2,ViewMode,WarehouseLayout} from './layout';
 import type {WarehouseInput} from './WarehouseStage';
 import {WAREHOUSE_PROFILES} from './profiles';
 import type {WarehouseProfile} from './profiles';
+import {warehouseZones} from './delivery';
 import './warehouse.css';
 const Stage=lazy(()=>import('./WarehouseStage'));
 
 export default function WarehousePage({profile}:{profile:WarehouseProfile}){
   const assetRoot=profile.assetRoot;
-  const [data,setData]=useState<WarehouseLayout|null>(null),[mode,setMode]=useState<ViewMode>('overview');
+  const [sourceData,setData]=useState<WarehouseLayout|null>(null),[mode,setMode]=useState<ViewMode>('overview');
+  const data=useMemo(()=>sourceData?{...sourceData,zones:warehouseZones(sourceData)}:null,[sourceData]);
   const [roof,setRoof]=useState(false),[zone,setZone]=useState('receiving'),[reset,setReset]=useState(0);
   const [visit,setVisit]=useState(0);
   const [expanded,setExpanded]=useState(false);
@@ -46,7 +48,7 @@ export default function WarehousePage({profile}:{profile:WarehouseProfile}){
     return ()=>{document.body.style.overflow=overflow;document.removeEventListener('keydown',escape);document.removeEventListener('fullscreenchange',fullscreen);};
   },[expanded]);
   function changeMode(next:ViewMode){setMode(next);setRoof(next==='walk');if(next==='walk')setTouchActive(true);input.current.keys.clear();}
-  function focusZone(id:string){setZone(id);setVisit(n=>n+1);if(mode==='plan')changeMode('overview');}
+  function focusZone(id:string){setZone(id);setVisit(n=>n+1);if(id==='delivery'&&mode!=='walk')setRoof(false);if(mode==='plan')changeMode('overview');}
   function showStock(target:'racks'|'pallets'){setZone(target);setVisit(n=>n+1);changeMode(target==='racks'?'walk':'overview');setTouchActive(true);}
   function toggleFullscreen(){
     if(expanded||document.fullscreenElement){setExpanded(false);void document.exitFullscreen?.().catch(()=>{});return;}

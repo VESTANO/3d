@@ -14,6 +14,14 @@ The production build is published from the root of the `gh-pages` branch. Reposi
 
 ## Warehouse · Paravoor DWG walkthrough
 
+### Delivery area
+
+Both 3D warehouses now show the two eastern delivery bays beside the drawing's `DELIVERD AREA` / `DELIVERED AREA` notes. Source jamb caps locate the openings at **z = 39.665–44.665 m** and **44.865–49.865 m**, with their inner/frame edges at x = 30.976 / 31.176 m. The former continuous perimeter wall is split above these openings. Jambs, thresholds, numbered overhead signs, inset lane paint and outbound arrows make the delivery strip visible. In Warehouse 2 the second painted bay follows the actual diagonal receiving partition. Door clear height (3.4 m), headers and sign heights remain illustrative because the DWG supplies a 2D plan.
+
+Choose **Delivery area · 2 bays** in the sidebar or **Go to** selector. Overview and Top view frame both bays, including after phone rotation; Walk inside places you in the clear delivery lane facing the openings. Source jambs block movement while the openings remain clear. The source DWGs, layout JSON/SVG files, every rack/pallet/work-table coordinate and the five first-warehouse counters are unchanged.
+
+`node --experimental-strip-types scripts/audit-warehouse-delivery.mjs public/warehouse-2` projects the actual floor triangles and eye-height wall bounds onto the source plan in `deliverables/delivery-warehouse-2.png` (ignored). Pass `public/warehouse` for the first plan. Tests compare door endpoints/jambs with recovered source edges, check actual wall geometry and floor-label containment, and project both focused cameras at phone/desktop proportions. This is offline geometry verification; a new browser visual pass has not been performed.
+
 ### Warehouse 2 · revised DWG
 
 **Warehouse 2** in both navigation bars opens `#warehouse-2`. It uses the newly supplied 5,675,520-byte drawing, SHA-256 `6d6ad0b844d5d77bfa8364879d79b54575c13314d1b1eb480e588e6c4307547b`. The original `#warehouse` route and its source assets remain separate. Switching warehouse routes remounts the viewer so the old geometry, movement state and pending fetch are disposed.
@@ -50,7 +58,7 @@ Every existing pallet remains rice-only. Matta, Jaya, Ponni and Kaima varieties 
 
 Forty product families plus four rice variants now use **photographic packaging images** instead of drawn text cards and food icons. Three local JPEG sheets (about 1.6 MB total) provide original Vestano concept artwork with Kerala dishes, ingredient photographs, printed pouch surfaces and woven rice-sack printing. Larger printed faces cover the packet fronts; complete bottle/jar labels repeat around the circumference so the product picture stays together from different aisles. The final images and the built-in imagegen prompts are documented in [docs/kerala-packaging.md](docs/kerala-packaging.md).
 
-The images load into one 1024×4096 texture, with render invalidation on each completed download and a disposal guard when switching warehouses. Product bodies share meshes by package shape, with per-instance colours and label tiles. The assortment retains 29 stock mesh batches; scene mesh counts remain 148 for Warehouse and 140 for Warehouse 2, including the section signs. Unit checks cover image files/dimensions/download budget, tile coverage, out-of-order image loading, redraw/disposal, regional assortment, rotated rice geometry within pallet bounds and shader integration. These are CPU and source-level checks, not a GPU performance measurement.
+The images load into one 1024×4096 texture, with render invalidation on each completed download and a disposal guard when switching warehouses. Product bodies share meshes by package shape, with per-instance colours and label tiles. The assortment retains 29 stock mesh batches; measured scene mesh counts, including the delivery correction, are 163 for Warehouse and 158 for Warehouse 2. Unit checks cover image files/dimensions/download budget, tile coverage, out-of-order image loading, redraw/disposal, regional assortment, rotated rice geometry within pallet bounds and shader integration. These are CPU and source-level checks, not a GPU performance measurement.
 
 Run `node --experimental-strip-types scripts/audit-kerala-packaging.mjs` for an offline preview of the actual photographic atlas image placements. It writes an ignored PNG/SVG in `deliverables/`, embeds the local JPEGs and needs no system fonts. Packaging is original illustrative Vestano artwork; it does not represent actual inventory, SKUs or pricing.
 
