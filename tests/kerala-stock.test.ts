@@ -36,7 +36,7 @@ test('rice varieties are grouped by pallet with alternating sack orientations',(
 
 test('actual rotated rice meshes and per-instance label tiles remain valid and batched',()=>{
   const previous=globalThis.document;
-  Object.defineProperty(globalThis,'document',{configurable:true,writable:true,value:{createElement:()=>({width:0,height:0,getContext:()=>({fillText(){},fillRect(){}})})}});
+  Object.defineProperty(globalThis,'document',{configurable:true,writable:true,value:{createElement:()=>({width:0,height:0,getContext:()=>({fillText(){},fillRect(){}})}),createElementNS:()=>({addEventListener(){},removeEventListener(){},set src(_value:string){}})}});
   try{
     const data=plans[1],placements=createStockPlan(data),root=new THREE.Group(),stock=addSupermarketStock(root,placements);
     const sacks=placements.filter(item=>item.kind==='sack'),pallets=new Map(data.pallets.map(pallet=>[pallet.id,pallet]));
@@ -57,7 +57,7 @@ test('actual rotated rice meshes and per-instance label tiles remain valid and b
     assert.ok(canvas.width<=4096&&canvas.height<=4096,'Label atlas exceeds the mobile texture budget');
     const shader={vertexShader:THREE.ShaderLib.standard.vertexShader,fragmentShader:THREE.ShaderLib.standard.fragmentShader,uniforms:{}};
     material.onBeforeCompile(shader,{} as THREE.WebGLRenderer);
-    assert.ok(shader.vertexShader.includes('attribute vec2 stockTile;')&&shader.vertexShader.includes('vMapUv = (vMapUv + stockTile)'));
+    assert.ok(shader.vertexShader.includes('attribute vec2 stockTile;')&&shader.vertexShader.includes('mix(vec2(0.0078125)')&&shader.vertexShader.includes('+ stockTile) / vec2(4.0, 16.0)'));
     assert.ok(stock.children.filter(object=>object instanceof THREE.InstancedMesh).length<=40,'Assortment must share package meshes instead of drawing every product separately');
     assert.ok(stock.getObjectByName('stock:jar:body')&&stock.getObjectByName('stock:tin:body'),'Pickle jars and coconut-milk tins are missing');
   }finally{Object.defineProperty(globalThis,'document',{configurable:true,writable:true,value:previous});}

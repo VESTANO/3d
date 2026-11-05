@@ -203,7 +203,7 @@ export function buildInterior(scene:THREE.Scene,data:WarehouseLayout,invalidate:
     const geometry=mergeGeometries(items,false);items.forEach(g=>g.dispose());if(!geometry)throw new Error('Warehouse geometry batching failed.');
     const mesh=new THREE.Mesh(geometry,material);mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh);
   }
-  const stock=addSupermarketStock(root,createStockPlan(data));
+  const stock=addSupermarketStock(root,createStockPlan(data),invalidate);
   unit.dispose();
   const ambient=new THREE.HemisphereLight('#e3efff','#a6a28d',2.8);scene.add(ambient);
   const sun=new THREE.DirectionalLight('#fff0d4',3.1);sun.position.set(8,32,42);sun.target.position.set(17,0,25);sun.castShadow=true;sun.shadow.mapSize.setScalar(2048);
