@@ -1,0 +1,23 @@
+VICE COAST ’86 — OFFLINE GAME
+
+1. Extract the ZIP into any folder.
+2. Double-click Play Vice Coast.html. If asked, choose Edge, Chrome, or Firefox.
+3. Choose Play story for the three jobs, or Free roam to explore the city.
+
+WASD or arrow keys — walk, accelerate, reverse and steer
+E — get in or out of a nearby parked car (slow down first)
+Space — handbrake in a car; jump on foot
+Shift — run on foot
+Drag the view — look around
+M — expand the map
+Esc — pause
+
+On mobile, use the on-screen arrows, CAR and BRAKE / JUMP buttons.
+The diamond on the minimap marks your next destination. The timer starts
+only after reaching the job’s starting marker in a car.
+
+No installation, account, or internet connection is required. Progress
+is saved in your browser when local storage is available. If 3D graphics
+cannot start, the same city and jobs are playable from a top-down view.
+
+This is an original Vice City–inspired browser game, not the Rockstar release.

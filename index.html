@@ -2,11 +2,65 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0c315b" />
-    <meta name="description" content="Follow Vestano rack equipment from China through ocean freight and Kochi Port to your warehouse in Kerala." />
-    <title>China to Kerala · Rack Equipment — Vestano</title>
-    <link rel="icon" type="image/png" href="/vestano-logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#190e1e" />
+    <meta name="description" content="Vice Coast is an original 3D coastal driving game. Run three jobs or cruise an open city at sunset." />
+    <title>Vice Coast '86 — Open World Arcade</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231d1123'/%3E%3Cpath d='M5 18a11 11 0 0 1 22 0zm2 3h18v2H7zm4 5h10v2H11z' fill='%23ffc47f'/%3E%3C/svg%3E" />
   </head>
-  <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
+  <body>
+    <main id="title-screen">
+      <header class="game-nav">
+        <div class="wordmark"><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 17a12 12 0 0 1 24 0zm2 4h20v2H6zm4 5h12v2H10z" fill="currentColor"/></svg><span>VICE COAST <i>’86</i></span></div>
+        <div class="nav-actions"><button type="button" data-controls class="nav-button">Controls</button><button type="button" data-sound class="nav-button sound-button" aria-pressed="true">Sound on</button></div>
+      </header>
+      <section class="cover" aria-labelledby="game-title">
+        <div class="cover-content">
+          <div class="eyebrow"><span></span> AN OPEN WORLD ARCADE</div>
+          <h1 id="game-title"><span>VICE</span><em>COAST<span class="title-period">.</span></em></h1>
+          <div class="cover-date"><i></i> COASTAL CITY / SUMMER ’86</div>
+          <p class="tagline">The sun goes down. The city opens up.</p>
+          <p class="cover-copy">Take the keys to a neon coast. Run three jobs across town or find your own road.</p>
+          <div class="launch-actions">
+            <button type="button" id="story" class="button primary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5 19 12 8 18.5Z" fill="currentColor"/></svg><span>Play story</span><strong aria-hidden="true">↗</strong></button>
+            <button type="button" id="roam" class="button secondary">Free roam <strong aria-hidden="true">↗</strong></button>
+          </div>
+          <p id="save-caption" class="save-caption">NEW GAME AVAILABLE</p>
+        </div>
+        <aside class="cover-caption"><span>01 / THE COAST</span><b>Ocean Mile, 19:42</b></aside>
+      </section>
+      <section class="play-modes" aria-label="What to play">
+        <div><span class="feature-number">01</span><p><strong>Run the city</strong><small>Three jobs. One long night.</small></p></div>
+        <div><span class="feature-number">02</span><p><strong>Take the wheel</strong><small>Switch between foot and car.</small></p></div>
+        <div><span class="feature-number">03</span><p><strong>Go your own way</strong><small>Explore five coastal districts.</small></p></div>
+      </section>
+      <footer class="title-footer"><span>VICE COAST · AN ORIGINAL FAN-INSPIRED GAME</span><span>LOCAL SAVE / KEYBOARD &amp; TOUCH</span></footer>
+    </main>
+
+    <section id="game-screen" aria-label="Vice Coast game" hidden>
+      <div id="world" aria-label="Game world"></div>
+      <div class="game-vignette" aria-hidden="true"></div>
+      <div class="hud-top">
+        <div class="job-card"><span id="mode-label" class="hud-eyebrow">STORY / JOB 01</span><h2 id="job-name">The Sunset Drop</h2><p id="objective">Enter the pink car</p><div id="escape" class="escape-bar" hidden><span></span></div></div>
+        <div class="city-tag"><span></span><div><b id="district">Ocean Mile</b><small id="clock">19:42</small></div></div>
+        <div class="player-info"><span id="cash">$000000</span><div id="stars" aria-label="Patrol alert: none">☆☆☆☆☆</div><div id="timer" hidden>01:30</div><button type="button" id="pause" class="pause-button" aria-label="Pause game">Ⅱ</button></div>
+      </div>
+      <div id="objective-marker" class="marker" hidden><span>◆</span><b id="distance-label">00 m</b></div>
+      <div id="toast" class="toast" role="status" hidden></div>
+      <div class="map-area"><div class="map-meta"><span>↟ N</span><button type="button" id="map-toggle" aria-label="Toggle larger map" aria-pressed="false">+</button></div><canvas id="map" width="250" height="250" aria-label="City minimap; pink diamond shows the active destination"></canvas><small id="view-mode">VICE COAST / GRID</small></div>
+      <div class="driving-info" id="car-hud" hidden><div><b id="speed">000</b><small>KM/H</small></div><div class="damage"><span>CAR CONDITION</span><i id="condition-bar"><em></em></i></div></div>
+      <div id="ride-hint" class="ride-hint" hidden><kbd>E</kbd> <span>Enter car</span></div>
+      <div class="touch-controls" aria-label="Touch controls">
+        <div class="touch-pad"><button type="button" data-held="up" aria-label="Forward or accelerate">▲</button><div><button type="button" data-held="left" aria-label="Left">◀</button><button type="button" data-held="down" aria-label="Back or reverse">▼</button><button type="button" data-held="right" aria-label="Right">▶</button></div></div>
+        <div class="touch-actions"><button type="button" data-action="ride">CAR</button><button type="button" data-held="brake">BRAKE / JUMP</button></div>
+      </div>
+      <div class="keyboard-hint"><kbd>WASD</kbd> Move / steer <i></i> <kbd>E</kbd> Enter / exit <i></i> <kbd>SPACE</kbd> Brake / jump <i></i> Drag to look</div>
+      <div id="loading" class="game-loading" role="status"><div class="sun-mark">◒</div><strong>Entering Vice Coast</strong><span>Building the city…</span></div>
+    </section>
+
+    <dialog id="game-dialog" aria-labelledby="dialog-title">
+      <div class="dialog-inner"><div class="dialog-top"><span id="dialog-kicker">FIELD GUIDE</span><button id="dialog-close" type="button" aria-label="Close dialog">×</button></div><h2 id="dialog-title">Controls</h2><div id="dialog-content"></div><div id="dialog-actions" class="dialog-actions"></div></div>
+    </dialog>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>
